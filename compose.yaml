@@ -1,0 +1,19 @@
+services:
+  db:
+    image: postgres:17
+    ports:
+      - "5442:5432"
+    environment:
+      POSTGRES_DB: blockpace
+      POSTGRES_USER: blockpace
+      POSTGRES_PASSWORD: blockpace
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U blockpace -d blockpace"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+volumes:
+  db-data:

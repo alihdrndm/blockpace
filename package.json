@@ -1,0 +1,36 @@
+{
+  "name": "blockpace",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "packageManager": "pnpm@12.9.1+sha512.06b055fff5cd20dc12781de173ced3310ce0951bf2ec620211a16045d5444d5c93a663210764ef29a653a610459ba0368f0e74f84d80c54723cf95aae7bc0d6d",
+  "scripts": {
+    "dev": "pnpm db:up && concurrently -n api,worker,web -c blue,green,magenta \"pnpm --filter api run dev\" \"pnpm --filter worker run dev\" \"pnpm --filter web run dev\"",
+    "build": "pnpm -r build",
+    "lint": "biome check .",
+    "format": "biome check --write .",
+    "typecheck": "pnpm build:packages && pnpm -r typecheck",
+    "test": "pnpm build:packages && pnpm -r test",
+    "test:e2e": "pnpm build:packages && pnpm --filter api run test:e2e",
+    "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm test:e2e && pnpm build",
+    "db:up": "node scripts/ensure-env.mjs && docker compose up -d --wait db",
+    "db:migrate": "pnpm --filter @alihdrndm/blockpace-db run db:migrate",
+    "db:seed": "pnpm --filter @alihdrndm/blockpace-db run db:seed",
+    "db:reset": "pnpm --filter @alihdrndm/blockpace-db run db:reset",
+    "build:packages": "pnpm --filter \"./packages/*\" run build"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.15",
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^24.19.1",
+    "@vitest/coverage-v8": "^5.0.3",
+    "concurrently": "^10.0.5",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.3"
+  },
+  "author": "Ali Haider Nadeem",
+  "license": "MIT"
+}
