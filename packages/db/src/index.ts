@@ -3,8 +3,11 @@ export { migrate } from "./migrate.js";
 export {
   type AlertType,
   BlockNotFoundError,
+  type EvaluationInput,
+  loadEvaluationInput,
   type RecordedEvaluation,
   recordEvaluation,
+  termsFromRow,
 } from "./record-evaluation.js";
 export * from "./schema.js";
 export { seed } from "./seed.js";

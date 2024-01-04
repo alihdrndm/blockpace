@@ -96,3 +96,10 @@ Format: date, what HANDOFF.md said, what was done, why.
 - **HANDOFF.md:** every table has `id uuid` as primary key. **Done:** `block_nights` and `snapshot_nights` use only the composite keys the table specifies, (`block_id`, `night`) and (`snapshot_id`, `night`), with no `id` column. **Why:** the table row is more specific, and an extra id would add nothing a composite key does not already give.
 - Alert `created_at` and `next_attempt_at` are truncated to whole seconds so the row and the RFC 3339 `createdAt` in its payload agree exactly.
 - Callers in M3 and M4 must pass `clock.now()` as the fourth argument of `recordEvaluation`; the `new Date()` default exists for scripts only.
+
+## 2026-10-07 — M3 slice 1: shared API schemas, evaluation loader, URL rule, line endings
+- API request, query and response schemas live in `packages/core/src/api-schemas.ts` (Zod is the single source of truth; Swagger is generated from them). `PATCH /v1/blocks/:id` with an empty body is rejected as `VALIDATION_FAILED` because it would change nothing.
+- `PUT` snapshots always store `source = "api"`, CSV imports store `"csv"`; `"manual"` is unused for now (owner decision).
+- `packages/db` exports `loadEvaluationInput` and `termsFromRow` so live evaluations, the pace chart and the block list read blocks the same way `recordEvaluation` does.
+- The webhook URL rule (`apps/api/src/webhooks/webhook-url.ts`) also blocks IPv4-mapped IPv6 addresses (`::ffff:10.0.0.1`) and `0.0.0.0/8`, and refuses a host that resolves to no address. These are stricter readings of "loopback, private ... unspecified".
+- `.gitattributes` forces LF line endings so Windows checkouts with `core.autocrlf=true` match `.editorconfig` and Biome and do not show phantom changes.
