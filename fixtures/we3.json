@@ -1,0 +1,83 @@
+{
+  "id": "WE3",
+  "block": {
+    "currency": "USD",
+    "cutoffDate": "2026-10-20",
+    "terms": {
+      "basis": "cumulative",
+      "allowedAttritionPct": 15,
+      "damagesPct": 80,
+      "taxPct": 0,
+      "resellCredit": false,
+      "minimumRounding": "ceil"
+    },
+    "nights": [
+      { "date": "2026-11-10", "contractedRooms": 45, "rateMinor": 18900 },
+      { "date": "2026-11-11", "contractedRooms": 60, "rateMinor": 18900 },
+      { "date": "2026-11-12", "contractedRooms": 60, "rateMinor": 21900 },
+      { "date": "2026-11-13", "contractedRooms": 35, "rateMinor": 21900 }
+    ]
+  },
+  "snapshots": [
+    {
+      "asOfDate": "2026-09-22",
+      "nights": [
+        { "date": "2026-11-10", "pickedUpRooms": 20 },
+        { "date": "2026-11-11", "pickedUpRooms": 28 },
+        { "date": "2026-11-12", "pickedUpRooms": 25 },
+        { "date": "2026-11-13", "pickedUpRooms": 15 }
+      ]
+    },
+    {
+      "asOfDate": "2026-09-29",
+      "nights": [
+        { "date": "2026-11-10", "pickedUpRooms": 26 },
+        { "date": "2026-11-11", "pickedUpRooms": 34 },
+        { "date": "2026-11-12", "pickedUpRooms": 30 },
+        { "date": "2026-11-13", "pickedUpRooms": 19 }
+      ]
+    },
+    {
+      "asOfDate": "2026-10-06",
+      "nights": [
+        { "date": "2026-11-10", "pickedUpRooms": 31 },
+        { "date": "2026-11-11", "pickedUpRooms": 40 },
+        { "date": "2026-11-12", "pickedUpRooms": 35 },
+        { "date": "2026-11-13", "pickedUpRooms": 23 }
+      ]
+    }
+  ],
+  "today": "2026-10-06",
+  "cases": [
+    {
+      "name": "cumulative",
+      "terms": { "basis": "cumulative" },
+      "expected": {
+        "pickedUpRoomNights": 129,
+        "shortfallRoomNights": 41,
+        "damagesMinor": 666660,
+        "forecast": {
+          "projectedPickupRoomNights": 170,
+          "projectedShortfallRoomNights": 0,
+          "projectedDamagesMinor": 0
+        },
+        "riskLevel": "on_track"
+      }
+    },
+    {
+      "name": "per_night",
+      "terms": { "basis": "per_night" },
+      "expected": {
+        "pickedUpRoomNights": 129,
+        "shortfallRoomNights": 42,
+        "damagesMinor": 690240,
+        "forecast": {
+          "projectedPickupRoomNights": 170,
+          "projectedShortfallRoomNights": 6,
+          "projectedDamagesMinor": 105120
+        },
+        "riskLevel": "at_risk"
+      }
+    }
+  ]
+}

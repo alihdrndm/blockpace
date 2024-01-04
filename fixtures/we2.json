@@ -1,0 +1,93 @@
+{
+  "id": "WE2",
+  "block": {
+    "currency": "USD",
+    "cutoffDate": "2026-10-20",
+    "terms": {
+      "basis": "cumulative",
+      "allowedAttritionPct": 15,
+      "damagesPct": 80,
+      "taxPct": 0,
+      "resellCredit": false,
+      "minimumRounding": "ceil"
+    },
+    "nights": [
+      { "date": "2026-11-10", "contractedRooms": 45, "rateMinor": 18900 },
+      { "date": "2026-11-11", "contractedRooms": 60, "rateMinor": 18900 },
+      { "date": "2026-11-12", "contractedRooms": 60, "rateMinor": 21900 },
+      { "date": "2026-11-13", "contractedRooms": 35, "rateMinor": 21900 }
+    ]
+  },
+  "snapshots": [
+    {
+      "asOfDate": "2026-10-06",
+      "nights": [
+        { "date": "2026-11-10", "pickedUpRooms": 40 },
+        { "date": "2026-11-11", "pickedUpRooms": 49 },
+        { "date": "2026-11-12", "pickedUpRooms": 44 },
+        { "date": "2026-11-13", "pickedUpRooms": 31 }
+      ]
+    }
+  ],
+  "today": "2026-10-06",
+  "cases": [
+    {
+      "name": "cumulative",
+      "terms": { "basis": "cumulative" },
+      "expected": {
+        "contractedRoomNights": 200,
+        "minimumRoomNights": 170,
+        "pickedUpRoomNights": 164,
+        "shortfallRoomNights": 6,
+        "damagesMinor": 97560
+      }
+    },
+    {
+      "name": "per_night",
+      "terms": { "basis": "per_night" },
+      "expected": {
+        "contractedRoomNights": 200,
+        "minimumRoomNights": 171,
+        "pickedUpRoomNights": 164,
+        "shortfallRoomNights": 9,
+        "damagesMinor": 152880
+      }
+    }
+  ],
+  "variants": [
+    {
+      "id": "WE2b",
+      "overrides": {
+        "terms": { "resellCredit": true },
+        "resoldRooms": { "2026-11-12": 3 }
+      },
+      "cases": [
+        {
+          "name": "cumulative",
+          "terms": { "basis": "cumulative" },
+          "expected": { "shortfallRoomNights": 3, "damagesMinor": 48780 }
+        },
+        {
+          "name": "per_night",
+          "terms": { "basis": "per_night" },
+          "expected": { "shortfallRoomNights": 6, "damagesMinor": 100320 }
+        }
+      ]
+    },
+    {
+      "id": "WE2c",
+      "overrides": { "terms": { "taxPct": 12.5 } },
+      "cases": [
+        {
+          "name": "cumulative",
+          "terms": { "basis": "cumulative" },
+          "expected": {
+            "damagesMinor": 97560,
+            "taxMinor": 12195,
+            "totalMinor": 109755
+          }
+        }
+      ]
+    }
+  ]
+}
