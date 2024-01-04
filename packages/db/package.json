@@ -18,15 +18,20 @@
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --coverage",
-    "db:migrate": "tsx src/cli.ts migrate",
-    "db:seed": "tsx src/cli.ts seed",
-    "db:reset": "tsx src/cli.ts reset"
+    "db:migrate": "tsx --env-file-if-exists=../../.env src/cli.ts migrate",
+    "db:seed": "tsx --env-file-if-exists=../../.env src/cli.ts seed",
+    "db:reset": "tsx --env-file-if-exists=../../.env src/cli.ts reset"
   },
   "dependencies": {
-    "pg": "^8.23.1"
+    "@alihdrndm/blockpace-core": "workspace:*",
+    "drizzle-orm": "^0.45.3",
+    "pg": "^8.23.1",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
-    "@types/pg": "^8.23.1"
+    "@testcontainers/postgresql": "^12.2.0",
+    "@types/pg": "^8.23.1",
+    "drizzle-kit": "^0.31.11"
   },
   "author": "Ali Haider Nadeem",
   "license": "MIT"
