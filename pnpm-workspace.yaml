@@ -1,12 +1,16 @@
 packages:
   - packages/*
   - apps/*
-# Install scripts that pnpm may run. All of these are optional: esbuild ships prebuilt
-# binaries, and cpu-features, protobufjs and ssh2 (pulled in by Testcontainers) work
-# without their native or post-install steps. Listing them as false keeps installs
-# reproducible and stops `pnpm install --frozen-lockfile` failing in CI.
+# Install scripts that pnpm may run. None is needed: esbuild ships prebuilt binaries;
+# cpu-features, protobufjs and ssh2 (pulled in by Testcontainers) work without their
+# native or post-install steps; @scarf/scarf (pulled in by Swagger UI) only sends
+# install analytics. Denying them keeps installs reproducible.
 allowBuilds:
   esbuild: false
   cpu-features: false
   protobufjs: false
   ssh2: false
+  "@scarf/scarf": false
+# Fail locally, exactly like CI, when a new dependency brings an unreviewed build script,
+# instead of only printing a warning that is easy to miss.
+strictDepBuilds: true
