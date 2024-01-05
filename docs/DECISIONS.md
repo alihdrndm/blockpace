@@ -106,3 +106,14 @@ Format: date, what HANDOFF.md said, what was done, why.
 
 ## 2026-10-07 — pnpm build scripts denied explicitly
 - pnpm 12 fails `pnpm install --frozen-lockfile` (CI) when a dependency has a build script that is neither allowed nor denied. `pnpm-workspace.yaml` denies the four that appear (`esbuild`, plus `cpu-features`, `protobufjs`, `ssh2` from Testcontainers); none is needed at runtime. This fixed the first CI runs, which failed at install.
+
+## 2026-10-07 — M3 slice 2: API foundations
+- **Validation and Swagger (OP5 check):** NestJS 12 validates `@Body({ schema })`, `@Query({ schema })` and `@Param({ schema })` with the built-in `StandardSchemaValidationPipe`, registered once as a global pipe with `transform: true` and a factory that builds the problem+json 422. `@nestjs/swagger` 12 reads Zod's Standard JSON Schema directly (`standardSchema` in `@ApiResponse`, and the decorator schemas for request bodies), so no converter is written.
+- **Extra error codes:** HANDOFF.md names the global codes `VALIDATION_FAILED`, `NOT_FOUND`, `INTERNAL`, `UNAUTHORIZED` and `RATE_LIMITED`. Three more cases need a code: unreadable bodies (`BAD_REQUEST`, 400), oversized bodies (`PAYLOAD_TOO_LARGE`, 413) and `/readyz` failing (`UNAVAILABLE`, 503). All are in `docs/ERRORS.md`.
+- **One app factory:** `apps/api/src/bootstrap.ts` builds the app for both `main.ts` and the e2e tests; `AppModule.register(config)` takes the parsed config, so tests pass a `Config` object instead of setting `process.env`.
+- **Explicit `@Inject(...)`:** every constructor dependency names its token. Vitest compiles TypeScript without decorator metadata, so injection by type alone would work in `nest build` but fail in tests.
+- **`NODE_ENV`** added to the API config: `production` = JSON logs, `development` = pino-pretty, `test` = silent.
+- **`drizzle-orm` in `apps/api`** (OP7): API services query tables with the same Drizzle schema as `packages/db`.
+- **Request id:** a caller-supplied `x-request-id` is reused when it is 1 to 200 characters, otherwise a UUID v7 is generated.
+- **API key comparison:** both values are SHA-256 hashed and the digests compared with `crypto.timingSafeEqual`, so the comparison takes the same time whatever the key's length.
+- The stateless calculator endpoint was built in slice 2 (not 3) because it is the first `/v1` route the auth, validation and docs tests need.

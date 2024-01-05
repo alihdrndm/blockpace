@@ -1,4 +1,4 @@
-import { createPool } from "@alihdrndm/blockpace-db";
+import { createDb, createPool, type Db } from "@alihdrndm/blockpace-db";
 import {
   Global,
   Inject,
@@ -11,6 +11,7 @@ import type { Config } from "../config.js";
 import { CONFIG } from "../config.token.js";
 
 export const PG_POOL = Symbol("PG_POOL");
+export const DB = Symbol("DB");
 
 // Closes the pool on SIGTERM so graceful shutdown does not hang on open connections.
 @Injectable()
@@ -22,6 +23,7 @@ class PoolShutdown implements OnApplicationShutdown {
   }
 }
 
+// One pg.Pool (max 10) for the whole process; DB is the Drizzle handle on top of it.
 @Global()
 @Module({
   providers: [
@@ -30,8 +32,13 @@ class PoolShutdown implements OnApplicationShutdown {
       inject: [CONFIG],
       useFactory: (config: Config) => createPool(config.DATABASE_URL),
     },
+    {
+      provide: DB,
+      inject: [PG_POOL],
+      useFactory: (pool: pg.Pool): Db => createDb(pool),
+    },
     PoolShutdown,
   ],
-  exports: [PG_POOL],
+  exports: [PG_POOL, DB],
 })
 export class DbModule {}
