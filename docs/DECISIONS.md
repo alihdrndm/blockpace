@@ -118,3 +118,13 @@ Format: date, what HANDOFF.md said, what was done, why.
 - **API key comparison:** both values are SHA-256 hashed and the digests compared with `crypto.timingSafeEqual`, so the comparison takes the same time whatever the key's length.
 - The stateless calculator endpoint was built in slice 2 (not 3) because it is the first `/v1` route the auth, validation and docs tests need.
 - 2026-10-07 follow-up: `@scarf/scarf` (install analytics, pulled in by Swagger UI) is denied too, and `strictDepBuilds: true` makes a local `pnpm install` fail the same way CI does, so a new unreviewed build script is caught before it is pushed.
+
+## 2026-10-07 — Repository security and PR flow (owner request, beyond HANDOFF.md)
+- **HANDOFF.md:** CI with `verify` and `e2e` jobs; `SECURITY.md` in M6. Nothing about branch protection or scanning.
+- **Done (owner asked for open-source hygiene):**
+  - `ci.yml`: least-privilege permissions, actions pinned to commit SHAs, `persist-credentials: false`, job timeouts, cancel superseded runs, and a `dependency-review` job on pull requests.
+  - `codeql.yml`: CodeQL `security-extended` on pushes to `main`, pull requests and weekly.
+  - `.github/dependabot.yml`: weekly grouped update PRs for npm and GitHub Actions (needed so pinned SHAs do not go stale).
+  - `.github/rulesets/protect-main.json`: the ruleset applied to `main` (PR required, squash only, CI and CodeQL must pass, no force-push, no deletion, linear history, conversations resolved). Zero required approvals because the owner is the only maintainer and GitHub does not let authors approve their own PRs.
+  - `SECURITY.md` written now (instead of M6) because private vulnerability reporting is enabled now and the policy must exist when it is.
+- **Not done:** issue/PR templates, CODEOWNERS and a code of conduct (owner did not select them).
