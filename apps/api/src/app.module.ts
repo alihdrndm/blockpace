@@ -5,6 +5,8 @@ import { APP_FILTER, APP_GUARD, APP_PIPE } from "@nestjs/core";
 import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 import { LoggerModule } from "nestjs-pino";
 import { ApiKeyGuard } from "./auth/api-key.guard.js";
+import { BlocksController } from "./blocks/blocks.controller.js";
+import { BlocksService } from "./blocks/blocks.service.js";
 import { CalculationsController } from "./calculations/calculations.controller.js";
 import { ClockService } from "./clock/clock.service.js";
 import type { Config } from "./config.js";
@@ -77,8 +79,9 @@ export class AppModule {
         LoggerModule.forRoot(loggerOptions(config)),
         ThrottlerModule.forRoot([{ ttl: 60_000, limit: 120 }]),
       ],
-      controllers: [HealthController, CalculationsController],
+      controllers: [HealthController, CalculationsController, BlocksController],
       providers: [
+        BlocksService,
         // Guards run in this order: rate limit first, then the API key.
         { provide: APP_GUARD, useClass: ThrottlerGuard },
         { provide: APP_GUARD, useClass: ApiKeyGuard },
