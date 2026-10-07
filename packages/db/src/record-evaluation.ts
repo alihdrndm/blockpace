@@ -1,4 +1,6 @@
 import {
+  type AttritionTerms,
+  AttritionTermsSchema,
   type Block,
   BlockSchema,
   diffDays,
@@ -15,6 +17,7 @@ import type { DbOrTx } from "./client.js";
 import {
   type AlertEventRow,
   alertEvents,
+  type BlockRow,
   blockNights,
   blocks,
   evaluations,
@@ -133,6 +136,55 @@ function alertCandidates(
   return candidates;
 }
 
+/** Contract terms as the calculator expects them; the database stores basis points. */
+export function termsFromRow(row: BlockRow): AttritionTerms {
+  return AttritionTermsSchema.parse({
+    basis: row.basis,
+    allowedAttritionPct: row.allowedAttritionBps / 100,
+    damagesPct: row.damagesBps / 100,
+    taxPct: row.taxBps / 100,
+    resellCredit: row.resellCredit,
+    minimumRounding: row.minimumRounding,
+  });
+}
+
+export interface EvaluationInput {
+  row: BlockRow;
+  block: Block;
+  /** All of the block's snapshots, oldest first. */
+  snapshots: Snapshot[];
+}
+
+/**
+ * Loads a block and its snapshots in the shape `evaluate` needs. Read-only, so the API can
+ * also use it for live evaluations, the pace chart and the block list.
+ */
+export async function loadEvaluationInput(
+  db: DbOrTx,
+  blockId: string,
+): Promise<EvaluationInput> {
+  const [row] = await db.select().from(blocks).where(eq(blocks.id, blockId));
+  if (row === undefined) throw new BlockNotFoundError(blockId);
+
+  const nightRows = await db
+    .select()
+    .from(blockNights)
+    .where(eq(blockNights.blockId, blockId))
+    .orderBy(asc(blockNights.night));
+
+  const block: Block = BlockSchema.parse({
+    currency: row.currency,
+    cutoffDate: row.cutoffDate,
+    terms: termsFromRow(row),
+    nights: nightRows.map((night) => ({
+      date: night.night,
+      contractedRooms: night.contractedRooms,
+      rateMinor: night.rateMinor,
+    })),
+  });
+  return { row, block, snapshots: await loadSnapshots(db, blockId) };
+}
+
 /**
  * Evaluates one block, stores the result and raises alerts. This is the only routine that
  * creates alerts and webhook deliveries.
@@ -148,40 +200,12 @@ export async function recordEvaluation(
   now: Date = new Date(),
 ): Promise<RecordedEvaluation> {
   // 1. Load everything and evaluate.
-  const [blockRow] = await tx
-    .select()
-    .from(blocks)
-    .where(eq(blocks.id, blockId));
-  if (blockRow === undefined) throw new BlockNotFoundError(blockId);
-
-  const nightRows = await tx
-    .select()
-    .from(blockNights)
-    .where(eq(blockNights.blockId, blockId))
-    .orderBy(asc(blockNights.night));
-
-  const block: Block = BlockSchema.parse({
-    currency: blockRow.currency,
-    cutoffDate: blockRow.cutoffDate,
-    terms: {
-      basis: blockRow.basis,
-      allowedAttritionPct: blockRow.allowedAttritionBps / 100,
-      damagesPct: blockRow.damagesBps / 100,
-      taxPct: blockRow.taxBps / 100,
-      resellCredit: blockRow.resellCredit,
-      minimumRounding: blockRow.minimumRounding,
-    },
-    nights: nightRows.map((night) => ({
-      date: night.night,
-      contractedRooms: night.contractedRooms,
-      rateMinor: night.rateMinor,
-    })),
-  });
-  const evaluation = evaluate({
+  const {
+    row: blockRow,
     block,
-    snapshots: await loadSnapshots(tx, blockId),
-    today,
-  });
+    snapshots: history,
+  } = await loadEvaluationInput(tx, blockId);
+  const evaluation = evaluate({ block, snapshots: history, today });
 
   // 2. The previous level must be read before this call writes anything: it is the
   // comparison point for RISK_LEVEL_CHANGED. It may be today's own row on a re-run.

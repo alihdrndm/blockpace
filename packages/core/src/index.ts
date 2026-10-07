@@ -1,4 +1,5 @@
 export const CORE_PACKAGE = "@alihdrndm/blockpace-core";
+export * from "./api-schemas.js";
 export { type EvaluateInput, evaluate } from "./evaluate.js";
 export { forecast } from "./forecast.js";
 export { newId } from "./ids.js";
