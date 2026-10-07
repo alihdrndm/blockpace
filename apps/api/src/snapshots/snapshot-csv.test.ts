@@ -83,6 +83,18 @@ describe("parseSnapshotCsv (IMPORT_INVALID rules)", () => {
     ]);
   });
 
+  it("IMPORT_INVALID row numbers are physical lines, counting skipped blank lines", () => {
+    const csv = [
+      "as_of_date,night,picked_up",
+      "",
+      "",
+      "2026-10-01,2026-11-10,1",
+      "2026-10-01,2026-11-11,1",
+      "2026-10-01,2026-11-11,x",
+    ].join("\n");
+    expect(errorsOf(csv).map((e) => e.path)).toContain("row 6");
+  });
+
   it("IMPORT_INVALID groups: duplicate nights and as_of_date groups missing nights", () => {
     const csv =
       "as_of_date,night,picked_up\n2026-10-01,2026-11-10,1\n2026-10-01,2026-11-10,2\n";
