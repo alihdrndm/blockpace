@@ -328,9 +328,11 @@ function NightsTable({
 }
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
+  // aria-labelledby takes a space-separated list of ids, so the id must not contain spaces.
+  const headingId = `section-${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
   return (
-    <section aria-labelledby={`section-${title}`} className="space-y-3">
-      <h2 id={`section-${title}`} className="text-lg font-semibold">
+    <section aria-labelledby={headingId} className="space-y-3">
+      <h2 id={headingId} className="text-lg font-semibold">
         {title}
       </h2>
       {children}
