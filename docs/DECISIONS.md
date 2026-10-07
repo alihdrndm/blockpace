@@ -158,3 +158,13 @@ Format: date, what HANDOFF.md said, what was done, why.
 - **`SINK_SECRET`** was added to `.env.example` (matching the seeded endpoint's secret) and `pnpm dev` now also starts the sink. `tools/` is type-checked by `pnpm typecheck` through `tools/tsconfig.json`.
 - **M4 review follow-ups:** `pino` and `pino-http` are runtime dependencies of the worker (OP7): `nestjs-pino` needs them as peers, exactly as in the API. On a 2xx the worker also stores `last_status_code` and clears `last_error`, so the deliveries list shows the final answer of every delivery, not only failed ones; HANDOFF.md step 3 lists only `status` and `delivered_at`.
 - `biome.json` now uses the `.gitignore` files (`vcs.useIgnoreFile`), so generated, git-ignored files such as Next.js's `next-env.d.ts` are never linted. Before, one `pnpm build` on Windows made the next `pnpm verify` fail.
+
+## M5 (agent)
+- **Server actions plus one route handler.** Forms (record snapshot, CSV import, new block, webhook add/delete/test) use Next.js server actions; the calculator posts to `app/api/calculate/route.ts`. Both run on the server, so the browser never sees `API_BASE_URL` or `API_KEY`.
+- **Web clock.** `apps/web/src/env.ts` also reads `FIXED_TODAY`, so the dashboard's "in 14 days" and the snapshot form's default date follow the same frozen date as the API in demos and the smoke test.
+- **Prefill without an extra endpoint.** The "Record snapshot" form is prefilled from the live evaluation's nights (the latest snapshot on or before today), so the block page does not depend on `GET /v1/blocks/:id/snapshots`.
+- **Per-section errors.** The block and webhooks pages load each API call separately; a failing call (for example an endpoint not deployed yet) shows its problem title and detail in that section only.
+- **Calculator inputs.** The calculator always shows both bases, so its terms form hides the basis selector. `cutoffDate` and `today` are left to the API defaults (first night, server clock).
+- **Smoke-test database.** Playwright prepares a separate `blockpace_e2e` database on the compose PostgreSQL (dropped and re-seeded with today 2026-10-06 each run), starts the API on port 4920 and the web app on 3920, so a developer's own data and dev servers are untouched. Root `test:e2e` now runs the API e2e tests, `pnpm db:up`, then the smoke test.
+- **`compose.yaml` has `name: blockpace`.** Without it, `pnpm db:up` from a git worktree or a differently named folder starts a second database on the same port and fails.
+- **Badge icons** are decorative (`aria-hidden`); the text label carries the meaning, so colour and icon are never the only signal.
