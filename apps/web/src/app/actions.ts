@@ -1,18 +1,26 @@
 "use server";
 
 // Server actions: the browser posts forms here, and only this server-side code calls the
-// NestJS API with the API key. Each action returns a small state object the form renders.
+// NestJS API with the API key. Every action is a public POST endpoint, so every argument and
+// field is treated as untrusted and checked before use. Each returns a state the form renders.
 
-import { parseIsoDate, tryParseIsoDate } from "@alihdrndm/blockpace-core";
+import { tryParseIsoDate } from "@alihdrndm/blockpace-core";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { api } from "../lib/api";
+import { api, idSegment } from "../lib/api";
 import { majorToMinor } from "../lib/format";
 import { type ErrorView, errorView } from "../lib/problem";
+
+/** Same limit as the API's CSV import (1 MiB). Not exported: a "use server" file may only export async functions. */
+const MAX_CSV_BYTES = 1024 * 1024;
 
 export type FormState =
   | { status: "idle" }
   | { status: "ok"; message: string }
+  | { status: "error"; error: ErrorView };
+
+export type ActionResult =
+  | { status: "ok" }
   | { status: "error"; error: ErrorView };
 
 const invalid = (detail: string): FormState => ({
@@ -25,6 +33,16 @@ const intField = (form: FormData, name: string): number | undefined => {
   return /^\d+$/.test(raw) ? Number(raw) : undefined;
 };
 
+/** Validates an id passed to an action; a bad one is reported like an API "not found". */
+function checkedId(id: string): ErrorView | undefined {
+  try {
+    idSegment(id);
+    return undefined;
+  } catch (error) {
+    return errorView(error);
+  }
+}
+
 /** Record snapshot: one pickup number per night, PUT to the block's snapshot for that date. */
 export async function recordSnapshot(
   blockId: string,
@@ -33,11 +51,16 @@ export async function recordSnapshot(
   _previous: FormState,
   form: FormData,
 ): Promise<FormState> {
+  const badId = checkedId(blockId);
+  if (badId !== undefined) return { status: "error", error: badId };
   const asOfDate = tryParseIsoDate(String(form.get("asOfDate") ?? ""));
   if (asOfDate === undefined) return invalid("As-of date must be a real date.");
 
-  const nights = [];
+  const nights: { date: string; pickedUpRooms: number; resoldRooms: number }[] =
+    [];
   for (const date of dates) {
+    if (tryParseIsoDate(date) === undefined)
+      return invalid("A night in the form is not a real date.");
     const pickedUpRooms = intField(form, `picked-${date}`);
     if (pickedUpRooms === undefined)
       return invalid(`Picked up for ${date} must be a whole number.`);
@@ -62,10 +85,13 @@ export async function importCsv(
   _previous: FormState,
   form: FormData,
 ): Promise<FormState> {
+  const badId = checkedId(blockId);
+  if (badId !== undefined) return { status: "error", error: badId };
   const file = form.get("file");
   if (!(file instanceof File) || file.size === 0)
     return invalid("Choose a CSV file first.");
-  if (file.size > 1_000_000) return invalid("The file is larger than 1 MB.");
+  if (file.size > MAX_CSV_BYTES)
+    return invalid("The file is larger than 1 MB (1,048,576 bytes).");
 
   const upload = new FormData();
   upload.append("file", file, file.name);
@@ -87,6 +113,9 @@ export async function createBlock(
   form: FormData,
 ): Promise<FormState> {
   const text = (name: string) => String(form.get(name) ?? "").trim();
+  const currency = text("currency").toUpperCase();
+  if (!/^[A-Z]{3}$/.test(currency))
+    return invalid("Currency must be a 3-letter code such as USD.");
   const firstNight = tryParseIsoDate(text("firstNight"));
   const count = intField(form, "nightCount");
   if (firstNight === undefined)
@@ -94,16 +123,23 @@ export async function createBlock(
   if (count === undefined || count < 1 || count > 60)
     return invalid("Number of nights must be 1 to 60.");
 
-  const dates = form.getAll("nightDate").map(String);
-  const nights = [];
-  for (const date of dates) {
+  const nights: { date: string; contractedRooms: number; rateMinor: number }[] =
+    [];
+  for (const date of form.getAll("nightDate").map(String)) {
+    if (tryParseIsoDate(date) === undefined)
+      return invalid("A night in the grid is not a real date.");
     const contractedRooms = intField(form, `contracted-${date}`);
-    const rateMinor = majorToMinor(text(`rate-${date}`));
     if (contractedRooms === undefined)
       return invalid(`Contracted rooms for ${date} must be a whole number.`);
+    let rateMinor: number | undefined;
+    try {
+      rateMinor = majorToMinor(text(`rate-${date}`), currency);
+    } catch {
+      return invalid(`${currency} is not a currency this browser knows.`);
+    }
     if (rateMinor === undefined)
       return invalid(`Rate for ${date} must be an amount like 189.00.`);
-    nights.push({ date: parseIsoDate(date), contractedRooms, rateMinor });
+    nights.push({ date, contractedRooms, rateMinor });
   }
 
   const pct = (name: string) => Number(text(name));
@@ -112,7 +148,7 @@ export async function createBlock(
     const block = await api.createBlock({
       name: text("name"),
       hotelName: text("hotelName"),
-      currency: text("currency").toUpperCase(),
+      currency,
       cutoffDate: text("cutoffDate"),
       terms: {
         basis: text("basis"),
@@ -131,6 +167,11 @@ export async function createBlock(
   // redirect() throws to navigate, so it must stay outside the try/catch.
   redirect(`/blocks/${id}`);
 }
+
+export type WebhookAddState =
+  | { status: "idle" }
+  | { status: "created"; url: string; secret: string }
+  | { status: "error"; error: ErrorView };
 
 export async function addWebhookEndpoint(
   _previous: WebhookAddState,
@@ -151,17 +192,22 @@ export async function addWebhookEndpoint(
   }
 }
 
-export type WebhookAddState =
-  | { status: "idle" }
-  | { status: "created"; url: string; secret: string }
-  | { status: "error"; error: ErrorView };
-
-export async function deleteWebhookEndpoint(id: string): Promise<void> {
-  await api.deleteEndpoint(id);
+export async function deleteWebhookEndpoint(id: string): Promise<ActionResult> {
+  try {
+    await api.deleteEndpoint(id);
+  } catch (error) {
+    return { status: "error", error: errorView(error) };
+  }
   revalidatePath("/webhooks");
+  return { status: "ok" };
 }
 
-export async function sendTestWebhook(id: string): Promise<void> {
-  await api.testEndpoint(id);
+export async function sendTestWebhook(id: string): Promise<ActionResult> {
+  try {
+    await api.testEndpoint(id);
+  } catch (error) {
+    return { status: "error", error: errorView(error) };
+  }
   revalidatePath("/webhooks");
+  return { status: "ok" };
 }

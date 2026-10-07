@@ -2,11 +2,13 @@
 
 import { useActionState, useState, useTransition } from "react";
 import {
+  type ActionResult,
   addWebhookEndpoint,
   deleteWebhookEndpoint,
   sendTestWebhook,
   type WebhookAddState,
 } from "../app/actions";
+import type { ErrorView } from "../lib/problem";
 import {
   buttonClass,
   ErrorPanel,
@@ -85,46 +87,38 @@ export function AddWebhookForm() {
 /** Delete and "Send test" buttons for one endpoint row. */
 export function EndpointActions({ id, url }: { id: string; url: string }) {
   const [pending, startTransition] = useTransition();
-  const [error, setError] = useState<string | undefined>();
-  const run = (action: (id: string) => Promise<void>, failure: string) =>
+  const [error, setError] = useState<ErrorView | undefined>();
+  const run = (action: (id: string) => Promise<ActionResult>) =>
     startTransition(async () => {
-      try {
-        setError(undefined);
-        await action(id);
-      } catch {
-        setError(failure);
-      }
+      setError(undefined);
+      const result = await action(id);
+      // The API's problem title and detail, e.g. NOT_FOUND when someone else already deleted it.
+      if (result.status === "error") setError(result.error);
     });
 
   return (
-    <div className="flex items-center gap-2">
-      <button
-        type="button"
-        disabled={pending}
-        className={secondaryButtonClass}
-        aria-label={`Send a test delivery to ${url}`}
-        onClick={() =>
-          run(sendTestWebhook, "The test delivery could not be queued.")
-        }
-      >
-        Send test
-      </button>
-      <button
-        type="button"
-        disabled={pending}
-        className={secondaryButtonClass}
-        aria-label={`Delete endpoint ${url}`}
-        onClick={() =>
-          run(deleteWebhookEndpoint, "The endpoint could not be deleted.")
-        }
-      >
-        Delete
-      </button>
-      {error !== undefined && (
-        <span role="alert" className="text-sm text-red-900">
-          {error}
-        </span>
-      )}
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          disabled={pending}
+          className={secondaryButtonClass}
+          aria-label={`Send a test delivery to ${url}`}
+          onClick={() => run(sendTestWebhook)}
+        >
+          Send test
+        </button>
+        <button
+          type="button"
+          disabled={pending}
+          className={secondaryButtonClass}
+          aria-label={`Delete endpoint ${url}`}
+          onClick={() => run(deleteWebhookEndpoint)}
+        >
+          Delete
+        </button>
+      </div>
+      {error !== undefined && <ErrorPanel error={error} />}
     </div>
   );
 }

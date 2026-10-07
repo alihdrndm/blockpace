@@ -2,11 +2,18 @@
 
 import {
   type Evaluation,
+  EvaluationSchema,
   eachNight,
   tryParseIsoDate,
 } from "@alihdrndm/blockpace-core";
 import { useState } from "react";
-import { formatMoney, formatPct, majorToMinor } from "../lib/format";
+import { z } from "zod";
+import {
+  formatMoney,
+  formatPct,
+  majorToMinor,
+  minorUnitDigits,
+} from "../lib/format";
 import type { ErrorView } from "../lib/problem";
 import { DEFAULT_TERMS, TermsFields, type TermsValue } from "./terms-fields";
 import {
@@ -63,6 +70,15 @@ const EXAMPLE = {
   } as Record<string, Row>,
 };
 
+// What the route handler sends back on failure (problem+json fields the panel shows).
+const ProblemBody = z.object({
+  title: z.string().optional(),
+  detail: z.string().optional(),
+  errors: z
+    .array(z.object({ path: z.string(), message: z.string() }))
+    .optional(),
+});
+
 type Outcome =
   | { ok: true; evaluation: Evaluation }
   | { ok: false; error: ErrorView };
@@ -114,9 +130,23 @@ export function Calculator() {
       pickedUpRooms: number;
       resoldRooms: number;
     }[] = [];
+    const code = currency.trim().toUpperCase();
+    let digitsKnown = /^[A-Z]{3}$/.test(code);
+    try {
+      if (digitsKnown) minorUnitDigits(code);
+    } catch {
+      digitsKnown = false;
+    }
+    if (!digitsKnown) {
+      setInputError({
+        title: "Check the currency",
+        detail: "Enter a 3-letter currency code such as USD.",
+      });
+      return;
+    }
     for (const date of dates) {
       const r = row(date);
-      const rateMinor = majorToMinor(r.rate);
+      const rateMinor = majorToMinor(r.rate, code);
       const numbers = [
         r.contracted,
         r.pickedUp,
@@ -151,7 +181,7 @@ export function Calculator() {
     setPending(true);
 
     const request = (basis: "cumulative" | "per_night") => ({
-      currency: currency.toUpperCase(),
+      currency: code,
       terms: {
         basis,
         allowedAttritionPct: Number(terms.allowedAttritionPct),
@@ -304,7 +334,6 @@ export function Calculator() {
               key={b.basis}
               title={b.title}
               outcome={results[b.basis]}
-              currency={currency.toUpperCase()}
             />
           ))}
         </div>
@@ -341,12 +370,12 @@ function Cell({
 function ResultPanel({
   title,
   outcome,
-  currency,
 }: {
   title: string;
   outcome: Outcome | undefined;
-  currency: string;
 }) {
+  // The currency the result was calculated in, not the input box (which may have changed since).
+  const currency = outcome?.ok === true ? outcome.evaluation.currency : "USD";
   const headingId = `result-${title.replace(/\W+/g, "-").toLowerCase()}`;
   return (
     <section
@@ -404,23 +433,31 @@ async function post(body: unknown): Promise<Outcome> {
     });
     const json: unknown = await response.json();
     if (!response.ok) {
-      const p = json as {
-        title?: string;
-        detail?: string;
-        errors?: { path: string; message: string }[];
-      };
+      const p = ProblemBody.safeParse(json);
+      const problem = p.success ? p.data : {};
       return {
         ok: false,
         error: {
-          title: p.title ?? "Calculation failed",
-          detail: p.detail ?? `Status ${response.status}`,
-          ...(p.errors !== undefined && p.errors.length > 0
-            ? { fieldErrors: p.errors }
+          title: problem.title ?? "Calculation failed",
+          detail: problem.detail ?? `Status ${response.status}`,
+          ...(problem.errors !== undefined && problem.errors.length > 0
+            ? { fieldErrors: problem.errors }
             : {}),
         },
       };
     }
-    return { ok: true, evaluation: json as Evaluation };
+    const evaluation = EvaluationSchema.safeParse(json);
+    if (!evaluation.success) {
+      return {
+        ok: false,
+        error: {
+          title: "Unexpected response",
+          detail:
+            "The calculation came back in a shape the dashboard did not expect.",
+        },
+      };
+    }
+    return { ok: true, evaluation: evaluation.data };
   } catch {
     return {
       ok: false,
