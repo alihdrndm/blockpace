@@ -6,6 +6,8 @@ import {
   CreateBlockRequestSchema,
   IdParamSchema,
   listOf,
+  type PatchBlockRequest,
+  PatchBlockRequestSchema,
   ProblemDetailsSchema,
 } from "@alihdrndm/blockpace-core";
 import {
@@ -16,6 +18,7 @@ import {
   HttpCode,
   Inject,
   Param,
+  Patch,
   Post,
   Query,
 } from "@nestjs/common";
@@ -88,6 +91,30 @@ export class BlocksController {
   @problem(422, "VALIDATION_FAILED (id is not a UUID)")
   get(@Param({ schema: IdParamSchema }) params: { id: string }) {
     return this.blocks.get(params.id);
+  }
+
+  @Patch(":id")
+  @ApiOperation({
+    summary:
+      "Change name, hotel, cutoff date, status or terms (nights are fixed)",
+    description:
+      "A change to terms or cutoffDate re-evaluates the block in the same transaction and may raise alerts.",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "The updated block",
+    standardSchema: BlockResponseSchema,
+  })
+  @problem(404, "NOT_FOUND")
+  @problem(
+    422,
+    "VALIDATION_FAILED (empty body, unknown key such as nights, or cutoff after the first night)",
+  )
+  patch(
+    @Param({ schema: IdParamSchema }) params: { id: string },
+    @Body({ schema: PatchBlockRequestSchema }) patch: PatchBlockRequest,
+  ) {
+    return this.blocks.patch(params.id, patch);
   }
 
   @Delete(":id")

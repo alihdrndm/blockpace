@@ -3,7 +3,9 @@ import {
   compareDates,
   decodeCursor,
   evaluate,
+  type IsoDate,
   newId,
+  type PatchBlockRequest,
 } from "@alihdrndm/blockpace-core";
 import {
   type BlockNightRow,
@@ -12,6 +14,7 @@ import {
   blocks,
   type Db,
   loadEvaluationInput,
+  recordEvaluation,
   termsFromRow,
 } from "@alihdrndm/blockpace-db";
 import { Inject, Injectable } from "@nestjs/common";
@@ -19,7 +22,7 @@ import { and, asc, desc, eq, inArray, lt, type SQL } from "drizzle-orm";
 import { ClockService } from "../clock/clock.service.js";
 import { toPage, toTimestamp } from "../common/http.js";
 import { DB } from "../db/db.module.js";
-import { notFound } from "../errors/problem.js";
+import { notFound, validationFailed } from "../errors/problem.js";
 
 /** The API shape of a block; the database keeps percentages as basis points. */
 export function toBlockResponse(row: BlockRow, nights: BlockNightRow[]) {
@@ -147,6 +150,69 @@ export class BlocksService {
         throw new Error(`missing summary for ${row.id}`);
       return { ...withoutNights, latest: summary };
     });
+  }
+
+  /**
+   * Changes name, hotel, cutoff, status or terms. Nights never change after creation.
+   * When terms or the cutoff change, the block is re-evaluated in the same transaction,
+   * so the stored evaluation and any alerts match the contract that was just saved.
+   */
+  async patch(id: string, patch: PatchBlockRequest) {
+    await this.db.transaction(async (tx) => {
+      // Row lock: two concurrent PATCHes on one block are applied one after the other.
+      const [row] = await tx
+        .select()
+        .from(blocks)
+        .where(eq(blocks.id, id))
+        .for("update");
+      if (row === undefined) throw notFound(`Block ${id}`);
+
+      if (
+        patch.cutoffDate !== undefined &&
+        compareDates(patch.cutoffDate, row.startDate as IsoDate) > 0
+      ) {
+        throw validationFailed("1 field failed validation.", [
+          {
+            path: "cutoffDate",
+            code: "custom",
+            message: "cutoffDate must not be after the first night",
+          },
+        ]);
+      }
+
+      const { terms } = patch;
+      await tx
+        .update(blocks)
+        .set({
+          ...(patch.name === undefined ? {} : { name: patch.name }),
+          ...(patch.hotelName === undefined
+            ? {}
+            : { hotelName: patch.hotelName }),
+          ...(patch.cutoffDate === undefined
+            ? {}
+            : { cutoffDate: patch.cutoffDate }),
+          ...(patch.status === undefined ? {} : { status: patch.status }),
+          ...(terms === undefined
+            ? {}
+            : {
+                basis: terms.basis,
+                allowedAttritionBps: Math.round(
+                  terms.allowedAttritionPct * 100,
+                ),
+                damagesBps: Math.round(terms.damagesPct * 100),
+                taxBps: Math.round(terms.taxPct * 100),
+                resellCredit: terms.resellCredit,
+                minimumRounding: terms.minimumRounding,
+              }),
+          updatedAt: this.clock.now(),
+        })
+        .where(eq(blocks.id, id));
+
+      if (terms !== undefined || patch.cutoffDate !== undefined) {
+        await recordEvaluation(tx, id, this.clock.today(), this.clock.now());
+      }
+    });
+    return this.get(id);
   }
 
   async remove(id: string): Promise<void> {
