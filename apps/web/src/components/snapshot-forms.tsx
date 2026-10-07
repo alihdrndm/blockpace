@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { type FormState, importCsv, recordSnapshot } from "../app/actions";
 import { buttonClass, ErrorPanel, inputClass } from "./ui";
 
@@ -37,6 +37,24 @@ export function RecordSnapshotForm({
     withResold,
   );
   const [state, formAction, pending] = useActionState(action, IDLE);
+  // Controlled inputs: React resets uncontrolled fields after a form action, even when the API
+  // rejects it, so a 422 would otherwise wipe what the planner typed.
+  const [asOfDate, setAsOfDate] = useState(today);
+  const [values, setValues] = useState(() =>
+    Object.fromEntries(
+      nights.map((n) => [
+        n.date,
+        { picked: String(n.pickedUpRooms), resold: String(n.resoldRooms) },
+      ]),
+    ),
+  );
+  const inputsFor = (date: string) =>
+    values[date] ?? { picked: "", resold: "0" };
+  const setValue = (date: string, key: "picked" | "resold", next: string) =>
+    setValues((current) => ({
+      ...current,
+      [date]: { ...inputsFor(date), [key]: next },
+    }));
 
   return (
     <form action={formAction} className="space-y-3">
@@ -48,7 +66,8 @@ export function RecordSnapshotForm({
           id="asOfDate"
           name="asOfDate"
           type="date"
-          defaultValue={today}
+          value={asOfDate}
+          onChange={(e) => setAsOfDate(e.target.value)}
           required
           className={inputClass}
         />
@@ -86,7 +105,10 @@ export function RecordSnapshotForm({
                   min={0}
                   step={1}
                   required
-                  defaultValue={night.pickedUpRooms}
+                  value={inputsFor(night.date).picked}
+                  onChange={(e) =>
+                    setValue(night.date, "picked", e.target.value)
+                  }
                   className={`${inputClass} w-24`}
                 />
               </td>
@@ -102,7 +124,10 @@ export function RecordSnapshotForm({
                     min={0}
                     step={1}
                     required
-                    defaultValue={night.resoldRooms}
+                    value={inputsFor(night.date).resold}
+                    onChange={(e) =>
+                      setValue(night.date, "resold", e.target.value)
+                    }
                     className={`${inputClass} w-24`}
                   />
                 </td>
