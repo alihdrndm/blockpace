@@ -13,6 +13,13 @@ if (secret === "") {
 const header = (value: string | string[] | undefined): string =>
   Array.isArray(value) ? (value[0] ?? "") : (value ?? "");
 
+// Header values come from whoever sent the request. Event types and delivery ids only ever use
+// letters, digits, "_", "-", "." and ":", so anything else (newlines, terminal escape codes) is
+// replaced before printing. Otherwise a crafted request could forge extra log lines, such as a
+// fake "signature OK".
+const printable = (value: string): string =>
+  value.replace(/[^\w.:-]/g, "?").slice(0, 100);
+
 /** Recomputes v1=HMAC-SHA256(secret, "timestamp.rawBody") and compares in constant time. */
 function signatureMatches(
   timestamp: string,
@@ -36,8 +43,8 @@ const server = createServer((request, response) => {
       header(request.headers["x-blockpace-signature"]),
     );
     console.log(
-      `${header(request.headers["x-blockpace-event"]) || "(no event)"} ` +
-        `${header(request.headers["x-blockpace-delivery"]) || "(no delivery id)"} ` +
+      `${printable(header(request.headers["x-blockpace-event"])) || "(no event)"} ` +
+        `${printable(header(request.headers["x-blockpace-delivery"])) || "(no delivery id)"} ` +
         `signature ${ok ? "OK" : "MISMATCH"}`,
     );
     // Always 204, so a bad signature shows up here instead of as retries in the worker.
