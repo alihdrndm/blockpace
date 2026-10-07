@@ -10,4 +10,9 @@ export {
   termsFromRow,
 } from "./record-evaluation.js";
 export * from "./schema.js";
-export { seed } from "./seed.js";
+export {
+  SEED_BLOCKS,
+  SEED_ENDPOINT_ID,
+  SEED_ENDPOINT_SECRET,
+  seed,
+} from "./seed.js";
