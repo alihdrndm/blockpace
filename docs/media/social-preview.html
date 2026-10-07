@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>blockpace social preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=block" rel="stylesheet">
+<style>
+  /* Source for docs/media/social-preview.png (GitHub social preview, 1280x640).
+     Render with: node docs/media/render-social-preview.mjs */
+  :root {
+    --dusk: #1c1830;
+    --dusk-deep: #141126;
+    --window-lit: #f4b942;
+    --window-dark: #2e2948;
+    --shortfall: #ff6b6b;
+    --minimum: #6ee7c8;
+    --text: #f6f2ff;
+    --muted: #b7aed6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1280px; height: 640px; }
+  body {
+    background:
+      radial-gradient(900px 520px at 78% 115%, rgba(244, 185, 66, 0.16), transparent 70%),
+      linear-gradient(180deg, var(--dusk) 0%, var(--dusk-deep) 100%);
+    color: var(--text);
+    font-family: "Bricolage Grotesque", system-ui, sans-serif;
+    overflow: hidden;
+    position: relative;
+  }
+  .copy {
+    position: absolute;
+    left: 72px;
+    top: 74px;
+    width: 600px;
+  }
+  .wordmark {
+    font-size: 132px;
+    font-weight: 800;
+    letter-spacing: -0.055em;
+    line-height: 0.9;
+    font-variation-settings: "opsz" 96;
+  }
+  .lede {
+    margin-top: 26px;
+    font-size: 32px;
+    font-weight: 600;
+    line-height: 1.18;
+    letter-spacing: -0.015em;
+    max-width: 540px;
+  }
+  .hook {
+    margin-top: 30px;
+    font-size: 22px;
+    font-weight: 400;
+    line-height: 1.4;
+    color: var(--muted);
+    max-width: 520px;
+  }
+  .hook strong { color: var(--text); font-weight: 600; }
+  .foot {
+    position: absolute;
+    left: 72px;
+    bottom: 54px;
+    width: 560px;
+    font-size: 19px;
+    line-height: 1.45;
+    color: var(--muted);
+  }
+  .foot .url { display: block; color: var(--text); font-weight: 600; letter-spacing: 0.01em; }
+  .foot b { color: var(--text); font-weight: 600; }
+  .building {
+    position: absolute;
+    right: 56px;
+    bottom: 22px;
+  }
+  .legend {
+    position: absolute;
+    right: 92px;
+    top: 62px;
+    display: grid;
+    gap: 10px;
+    font-size: 17px;
+    color: var(--muted);
+    text-align: left;
+  }
+  .legend span { display: inline-flex; align-items: center; gap: 10px; }
+  .swatch { width: 16px; height: 16px; border-radius: 3px; display: inline-block; }
+  .line-swatch { width: 22px; height: 0; border-top: 3px dashed var(--minimum); display: inline-block; }
+</style>
+</head>
+<body>
+  <div class="copy">
+    <div class="wordmark">blockpace</div>
+    <p class="lede">Know what your hotel room block will cost before the cutoff date.</p>
+    <p class="hook">Same pickup. <strong>$975.60</strong> or <strong>$1,528.80</strong> in attrition damages, depending on one line in the contract.</p>
+  </div>
+
+  <div class="legend" aria-hidden="true">
+    <span><i class="swatch" style="background: var(--window-lit)"></i>Rooms picked up</span>
+    <span><i class="swatch" style="background: var(--shortfall)"></i>Short of the minimum</span>
+    <span><i class="line-swatch"></i>Contract minimum</span>
+  </div>
+
+  <!-- The hotel: one tower per night, one window per 3 contracted rooms, two per floor (WE2 from the spec:
+       contracted 45/60/60/35, minimum 39/51/51/30, picked up 40/49/44/31). -->
+  <svg class="building" id="building" width="440" height="470" viewBox="0 0 440 470" aria-hidden="true"></svg>
+
+  <div class="foot">Open source attrition tracker for event planners<span class="url">github.com/alihdrndm/blockpace</span></div>
+
+<script>
+  const svg = document.getElementById("building");
+  const ns = "http://www.w3.org/2000/svg";
+  const nights = [
+    { label: "Tue", contracted: 45, minimum: 39, pickup: 40 },
+    { label: "Wed", contracted: 60, minimum: 51, pickup: 49 },
+    { label: "Thu", contracted: 60, minimum: 51, pickup: 44 },
+    { label: "Fri", contracted: 35, minimum: 30, pickup: 31 },
+  ];
+  const per = 3, perFloor = 2, win = 27, gap = 8, towerW = perFloor * win + (perFloor + 1) * gap, towerGap = 26, base = 438;
+  const el = (name, attrs) => {
+    const node = document.createElementNS(ns, name);
+    for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, v);
+    svg.appendChild(node);
+    return node;
+  };
+  // Soft glow so lit rooms read as windows at dusk.
+  const defs = el("defs", {});
+  const filter = document.createElementNS(ns, "filter");
+  filter.setAttribute("id", "glow");
+  filter.setAttribute("x", "-60%"); filter.setAttribute("y", "-60%"); filter.setAttribute("width", "220%"); filter.setAttribute("height", "220%");
+  filter.innerHTML = `<feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>`;
+  defs.appendChild(filter);
+  el("line", { x1: 0, x2: 440, y1: base, y2: base, stroke: "#3a3360", "stroke-width": 2 });
+  nights.forEach((night, i) => {
+    const x = i * (towerW + towerGap) + 10;
+    const rows = Math.ceil(night.contracted / per / perFloor);
+    const towerH = rows * (win + gap) + gap + 18;
+    el("rect", { x, y: base - towerH, width: towerW, height: towerH, rx: 6, fill: "#251f3e", stroke: "#3a3360", "stroke-width": 1.5 });
+    // Rooms fill bottom-up, three per floor.
+    const total = Math.ceil(night.contracted / per);
+    for (let r = 0; r < total; r++) {
+      const roomStart = r * per;
+      const floor = Math.floor(r / perFloor), col = r % perFloor;
+      const wx = x + gap + col * (win + gap);
+      const wy = base - gap - (floor + 1) * (win + gap) + gap;
+      let fill = "var(--window-dark)";
+      if (roomStart < night.pickup) fill = "var(--window-lit)";
+      else if (roomStart < night.minimum) fill = "var(--shortfall)";
+      el("rect", { x: wx, y: wy, width: win, height: win, rx: 3, fill, ...(fill === "var(--window-dark)" ? {} : { filter: "url(#glow)" }) });
+    }
+    // Minimum line at the height where the contract minimum falls.
+    const minFloors = night.minimum / per / perFloor;
+    const my = base - gap - minFloors * (win + gap) + gap / 2;
+    el("line", { x1: x - 6, x2: x + towerW + 6, y1: my, y2: my, stroke: "var(--minimum)", "stroke-width": 3, "stroke-dasharray": "7 5" });
+    const t = el("text", { x: x + towerW / 2, y: base + 24, "text-anchor": "middle", fill: "var(--muted)", "font-size": 17, "font-family": "Bricolage Grotesque" });
+    t.textContent = night.label;
+  });
+</script>
+</body>
+</html>
