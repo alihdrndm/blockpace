@@ -149,7 +149,7 @@ Format: date, what HANDOFF.md said, what was done, why.
 - **Known cost:** `GET /v1/blocks` evaluates each listed block with its own queries (about 3 per block). Fine at this project's scale; a batched loader is the fix if lists grow.
 - **For M6:** rate limiting keys on the client IP. Behind a load balancer the API must trust the proxy's `X-Forwarded-For`, or every caller shares one budget.
 
-## M4 (agent)
+## 2026-10-07 — M4 worker
 - **Worker config:** HANDOFF.md names only `apps/api/src/config.ts` and `apps/web/src/env.ts` as `process.env` readers. The worker is a separate process with its own settings, so `apps/worker/src/config.ts` is a third reader (Zod, parsed once, exit 1 on invalid config). Nothing else in the worker reads `process.env`.
 - **`attempts` counts every try:** HANDOFF.md says `attempts += 1` on failure. The worker also adds 1 on success, so `attempts` is the number of requests actually sent (a first-try success shows 1, not 0).
 - **Due rows use the injected clock:** HANDOFF.md writes the poll query with SQL `now()`. The worker passes `clock.now()` instead (`next_attempt_at <= $now`, and `now + backoff` when rescheduling), so tests can walk the whole retry schedule deterministically. In production both are the current instant.
