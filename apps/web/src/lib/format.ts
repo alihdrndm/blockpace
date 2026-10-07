@@ -2,10 +2,22 @@ import type { AttritionTerms, RiskLevel } from "@alihdrndm/blockpace-core";
 
 // Pure display helpers shared by server and client components.
 
-/** Money is stored in minor units (cents); the browser formats it for people. */
+const currencyFormat = (currency: string) =>
+  new Intl.NumberFormat("en-US", { style: "currency", currency });
+
+/**
+ * How many decimal places the currency's minor unit has: 2 for USD (cents), 0 for JPY,
+ * 3 for KWD. Taken from Intl rather than assumed, so any ISO currency is handled.
+ * Throws RangeError for a code Intl does not know.
+ */
+export function minorUnitDigits(currency: string): number {
+  return currencyFormat(currency).resolvedOptions().maximumFractionDigits ?? 2;
+}
+
+/** Money is stored in minor units; the browser formats it in the currency's own convention. */
 export function formatMoney(minor: number, currency: string): string {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency }).format(
-    minor / 100,
+  return currencyFormat(currency).format(
+    minor / 10 ** minorUnitDigits(currency),
   );
 }
 
@@ -67,16 +79,30 @@ export const RISK_BADGES: Record<RiskLevel, BadgeStyle> = {
   },
 };
 
-/** "189" or "189.5" or "189.00" (major units) to 18900 minor units; undefined if not money. */
-export function majorToMinor(value: string): number | undefined {
-  const match = /^(\d{1,9})(?:\.(\d{1,2}))?$/.exec(value.trim());
+/**
+ * A typed amount in major units to minor units, exactly (string arithmetic, no floating point):
+ * "189.5" USD is 18950, "1500" JPY is 1500, "1.250" KWD is 1250. Undefined if it is not an
+ * amount with at most the currency's number of decimals.
+ */
+export function majorToMinor(
+  value: string,
+  currency: string,
+): number | undefined {
+  const digits = minorUnitDigits(currency);
+  const match = /^(\d{1,9})(?:\.(\d+))?$/.exec(value.trim());
   if (match === null) return undefined;
-  const whole = Number(match[1]);
-  const cents = Number((match[2] ?? "").padEnd(2, "0"));
-  return whole * 100 + cents;
+  const fraction = match[2] ?? "";
+  if (fraction.length > digits) return undefined;
+  return (
+    Number(match[1]) * 10 ** digits +
+    Number(fraction.padEnd(digits, "0") || "0")
+  );
 }
 
-/** 18900 to "189.00", for prefilling major-unit inputs. */
-export function minorToMajor(minor: number): string {
-  return `${Math.floor(minor / 100)}.${String(minor % 100).padStart(2, "0")}`;
+/** Minor units back to a major-unit input value: 18900 USD is "189.00". */
+export function minorToMajor(minor: number, currency: string): string {
+  const digits = minorUnitDigits(currency);
+  if (digits === 0) return String(minor);
+  const scale = 10 ** digits;
+  return `${Math.floor(minor / scale)}.${String(minor % scale).padStart(digits, "0")}`;
 }
