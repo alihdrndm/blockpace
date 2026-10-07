@@ -16,7 +16,7 @@ Every non-2xx response from the API is `application/problem+json` ([RFC 9457](ht
 
 - `code` is stable; match on it, not on `title` or `detail`.
 - `instance` is the request id. It is also in the `x-request-id` response header and in the server log line for that request.
-- `errors` appears only on validation failures: one entry per problem, with a dot-separated `path` into the request.
+- `errors` appears on `VALIDATION_FAILED` (one entry per problem, `path` is dot-separated into the request) and on `IMPORT_INVALID` (`path` is `row <n>`, or `file`).
 - A 500 never contains an internal message or stack trace; the server logs those against the same request id.
 
 | Code | Status | Meaning |
@@ -70,7 +70,7 @@ Every non-2xx response from the API is `application/problem+json` ([RFC 9457](ht
 422. On some night, `resoldRooms` is larger than that night's `contractedRooms`. `detail` names the nights.
 
 ## IMPORT_INVALID
-422. The CSV upload was rejected as a whole; nothing was saved. Each `errors[]` entry has `path` set to `row <n>`.
+422. The CSV upload was rejected as a whole; nothing was saved. Each `errors[]` entry has `path` set to `row <n>`, the physical line in the file (blank lines count), or to `file` when the upload is missing or is not readable as CSV.
 
 ## WEBHOOK_URL_NOT_ALLOWED
 422. Webhook URLs must use `https` and must not resolve to a loopback, private, link-local, carrier-grade NAT or unspecified address. A local development server can allow `http` and private addresses with `ALLOW_PRIVATE_WEBHOOK_TARGETS=true`.

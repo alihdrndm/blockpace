@@ -101,7 +101,7 @@ Format: date, what HANDOFF.md said, what was done, why.
 - API request, query and response schemas live in `packages/core/src/api-schemas.ts` (Zod is the single source of truth; Swagger is generated from them). `PATCH /v1/blocks/:id` with an empty body is rejected as `VALIDATION_FAILED` because it would change nothing.
 - `PUT` snapshots always store `source = "api"`, CSV imports store `"csv"`; `"manual"` is unused for now (owner decision).
 - `packages/db` exports `loadEvaluationInput` and `termsFromRow` so live evaluations, the pace chart and the block list read blocks the same way `recordEvaluation` does.
-- The webhook URL rule (`apps/api/src/webhooks/webhook-url.ts`) also blocks IPv4-mapped IPv6 addresses (`::ffff:10.0.0.1`) and `0.0.0.0/8`, and refuses a host that resolves to no address. These are stricter readings of "loopback, private ... unspecified".
+- The webhook URL rule (first in `apps/api/src/webhooks/webhook-url.ts`, now `packages/db/src/webhook-url.ts`) also blocks IPv4-mapped IPv6 addresses (`::ffff:10.0.0.1`) and `0.0.0.0/8`, and refuses a host that resolves to no address. These are stricter readings of "loopback, private ... unspecified".
 - `.gitattributes` forces LF line endings so Windows checkouts with `core.autocrlf=true` match `.editorconfig` and Biome and do not show phantom changes.
 
 ## 2026-10-07 — pnpm build scripts denied explicitly
@@ -130,7 +130,7 @@ Format: date, what HANDOFF.md said, what was done, why.
 - **Not done:** issue/PR templates, CODEOWNERS and a code of conduct (owner did not select them).
 - 2026-10-07 follow-up: the webhook URL rule moved to `packages/db/src/webhook-url.ts` so the worker (M4) can re-check URLs before every delivery without importing from `apps/api`.
 
-## M3 slices 4-5 (agent)
+## 2026-10-07 — M3 slices 4-5
 - **Snapshot replace keeps the id.** `PUT .../snapshots/:asOfDate` on an existing date updates that row's `source` and `note` (a missing `note` clears it) and replaces its nights, so the snapshot id is stable. `snapshots` has no `updated_at` column in the spec, so none is added.
 - **Row lock for the 400 limit.** Every snapshot write locks the block row (`SELECT ... FOR UPDATE`) first, so two concurrent writers cannot both pass the "fewer than 400 snapshots" check. Replacing an existing date never counts against the limit.
 - **CSV import rules.** Column names are matched case-insensitively and in any order; unknown or duplicate columns, a missing file, an unreadable file and an empty file are `IMPORT_INVALID` (`path` is `row 1` for header problems, `file` for a missing or unreadable file). An empty `resold` cell means 0. Future dates, unknown nights, duplicate (date, night) rows and resold above contracted rooms are reported per row as `IMPORT_INVALID` rather than as their single-snapshot codes, because the import reports every problem at once. At most 100 errors are listed. The response status is 200 (the spec gives the body, not the status).
@@ -138,3 +138,13 @@ Format: date, what HANDOFF.md said, what was done, why.
 - **Webhook test delivery.** `POST /v1/webhook-endpoints/:id/test` answers 202 with the queued delivery (the spec gives only the status).
 - **List endpoints.** The delivery list leaves out the stored webhook body (alerts keep their `payload`), and filtering alerts by an unknown `blockId` returns an empty page, not 404.
 - **DNS in tests.** `createApp(config, { lookup })` lets tests pass a fake DNS resolver to the webhook URL rule, so no test touches the network.
+
+## 2026-10-07 — M3 review fixes
+- **Auth on every route:** the API key guard now protects every route except a closed list (`/healthz`, `/readyz`, `/docs`, `/docs-json`, `/docs/*`) compared in lower case. Express matches routes case-insensitively, so the earlier "path starts with `/v1/`" check let `/V1/...` through without a key. An e2e test covers it.
+- **CSV row numbers** are physical line numbers (csv-parse `info: true`), so skipped blank lines still count.
+- **500 logging** keeps the error type and stack frames but not the message: a failed Drizzle query's message includes its parameters, which come from the request body.
+- **`SNAPSHOT_IN_FUTURE`** is checked after the block lookup, so an unknown block is 404 whatever the date.
+- **Webhook endpoint responses include `createdAt`** (HANDOFF lists `{ id, url, active, secret }`); the web page shows when each endpoint was added. The secret is still returned only by `POST`.
+- **`pino` and `pino-http`** are runtime dependencies of `apps/api` (OP7): they are peer dependencies of `nestjs-pino`, which HANDOFF names.
+- **Known cost:** `GET /v1/blocks` evaluates each listed block with its own queries (about 3 per block). Fine at this project's scale; a batched loader is the fix if lists grow.
+- **For M6:** rate limiting keys on the client IP. Behind a load balancer the API must trust the proxy's `X-Forwarded-For`, or every caller shares one budget.
