@@ -1,0 +1,17 @@
+# Keep the build context small and free of secrets and host artifacts.
+**/node_modules
+**/dist
+**/.next
+**/.sst
+**/coverage
+**/*.tsbuildinfo
+playwright-report
+test-results
+.git
+.github
+.claude
+.env
+.env.*
+!.env.example
+HANDOFF.md
+infra
