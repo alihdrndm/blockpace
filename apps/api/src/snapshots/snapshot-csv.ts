@@ -50,44 +50,54 @@ export function parseSnapshotCsv(
     ]);
   }
 
-  let rows: string[][];
+  // info: true gives each record its physical line number, so "row <n>" points at the line a
+  // planner sees in a spreadsheet even when blank lines were skipped.
+  let rows: { cells: string[]; line: number }[];
   try {
-    rows = parse(file, {
+    // csv-parse's types do not model the `info: true` record shape, hence the cast.
+    const records = parse(file, {
       bom: true,
       trim: true,
       skip_empty_lines: true,
       relax_column_count: true,
-    });
+      info: true,
+    }) as unknown as { record: string[]; info: { lines: number } }[];
+    rows = records.map((r) => ({ cells: r.record, line: r.info.lines }));
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "not a readable CSV file";
     throw invalid([{ path: "file", code: "unreadable", message }]);
   }
 
-  const header = (rows[0] ?? []).map((name) => name.toLowerCase());
+  const headerLine = rows[0]?.line ?? 1;
+  const header = (rows[0]?.cells ?? []).map((name) => name.toLowerCase());
   const headerErrors: FieldError[] = [];
   for (const name of REQUIRED) {
     if (!header.includes(name))
       headerErrors.push(
-        rowError(1, "missing_column", `missing column ${name}`),
+        rowError(headerLine, "missing_column", `missing column ${name}`),
       );
   }
   for (const name of header) {
     if (![...REQUIRED, ...OPTIONAL].includes(name as never)) {
       headerErrors.push(
-        rowError(1, "unknown_column", `unknown column ${name || "(empty)"}`),
+        rowError(
+          headerLine,
+          "unknown_column",
+          `unknown column ${name || "(empty)"}`,
+        ),
       );
     }
   }
   if (new Set(header).size !== header.length) {
     headerErrors.push(
-      rowError(1, "duplicate_column", "a column name appears twice"),
+      rowError(headerLine, "duplicate_column", "a column name appears twice"),
     );
   }
   if (headerErrors.length > 0) throw invalid(headerErrors);
   if (rows.length < 2)
     throw invalid([
-      rowError(1, "empty", "the file has a header but no data rows"),
+      rowError(headerLine, "empty", "the file has a header but no data rows"),
     ]);
 
   const column = (name: string) => header.indexOf(name);
@@ -101,8 +111,7 @@ export function parseSnapshotCsv(
   >();
   const seen = new Set<string>();
 
-  rows.slice(1).forEach((cells, index) => {
-    const row = index + 2;
+  rows.slice(1).forEach(({ cells, line: row }) => {
     if (cells.length !== header.length) {
       errors.push(
         rowError(
