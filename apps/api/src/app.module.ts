@@ -1,22 +1,90 @@
-import { Global, Module } from "@nestjs/common";
+import type { IncomingMessage, ServerResponse } from "node:http";
+import { newId } from "@alihdrndm/blockpace-core";
+import { type DynamicModule, Global, Module } from "@nestjs/common";
+import { APP_FILTER, APP_GUARD, APP_PIPE } from "@nestjs/core";
+import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
+import { LoggerModule } from "nestjs-pino";
+import { ApiKeyGuard } from "./auth/api-key.guard.js";
+import { CalculationsController } from "./calculations/calculations.controller.js";
 import { ClockService } from "./clock/clock.service.js";
-import { type Config, loadConfig } from "./config.js";
+import type { Config } from "./config.js";
 import { CONFIG } from "./config.token.js";
 import { DbModule } from "./db/db.module.js";
+import { ProblemFilter } from "./errors/problem.filter.js";
+import { validationPipe } from "./errors/validation.js";
 import { HealthController } from "./health/health.controller.js";
 
-@Global()
-@Module({
-  providers: [
-    { provide: CONFIG, useFactory: (): Config => loadConfig() },
-    ClockService,
-  ],
-  exports: [CONFIG, ClockService],
-})
-class CoreModule {}
+const REQUEST_ID = "x-request-id";
 
-@Module({
-  imports: [CoreModule, DbModule],
-  controllers: [HealthController],
-})
-export class AppModule {}
+// Reuses the caller's request id when it sends one, so a request can be traced across systems.
+function requestId(request: IncomingMessage, response: ServerResponse): string {
+  const given = request.headers[REQUEST_ID];
+  const id =
+    typeof given === "string" && given.length > 0 && given.length <= 200
+      ? given
+      : newId();
+  response.setHeader(REQUEST_ID, id);
+  return id;
+}
+
+/**
+ * Logging rules: one line per request with method, path, status, duration and request id.
+ * Bodies and headers (other than x-request-id and user-agent) never reach the log.
+ */
+function loggerOptions(config: Config) {
+  return {
+    pinoHttp: {
+      level: config.NODE_ENV === "test" ? "silent" : "info",
+      genReqId: requestId,
+      serializers: {
+        req: (req: IncomingMessage & { id?: unknown }) => ({
+          id: req.id,
+          method: req.method,
+          path: (req.url ?? "").split("?")[0],
+          userAgent: req.headers["user-agent"],
+        }),
+        res: (res: ServerResponse) => ({ statusCode: res.statusCode }),
+      },
+      ...(config.NODE_ENV === "development"
+        ? {
+            transport: { target: "pino-pretty", options: { singleLine: true } },
+          }
+        : {}),
+    },
+  };
+}
+
+/**
+ * The root module takes the already-parsed config, so tests build the exact same app
+ * as production with a different Config object.
+ */
+@Module({})
+// biome-ignore lint/complexity/noStaticOnlyClass: Nest dynamic modules are classes with a static register().
+export class AppModule {
+  static register(config: Config): DynamicModule {
+    @Global()
+    @Module({
+      providers: [{ provide: CONFIG, useValue: config }, ClockService],
+      exports: [CONFIG, ClockService],
+    })
+    class ConfigModule {}
+
+    return {
+      module: AppModule,
+      imports: [
+        ConfigModule,
+        DbModule,
+        LoggerModule.forRoot(loggerOptions(config)),
+        ThrottlerModule.forRoot([{ ttl: 60_000, limit: 120 }]),
+      ],
+      controllers: [HealthController, CalculationsController],
+      providers: [
+        // Guards run in this order: rate limit first, then the API key.
+        { provide: APP_GUARD, useClass: ThrottlerGuard },
+        { provide: APP_GUARD, useClass: ApiKeyGuard },
+        { provide: APP_FILTER, useClass: ProblemFilter },
+        { provide: APP_PIPE, useValue: validationPipe },
+      ],
+    };
+  }
+}

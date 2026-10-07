@@ -10,6 +10,10 @@ const IsoDateString = z
 const BoolString = z.enum(["true", "false"]).transform((v) => v === "true");
 
 const ConfigSchema = z.object({
+  // production = JSON logs; development = pretty logs; test = silent logs.
+  NODE_ENV: z
+    .enum(["development", "production", "test"])
+    .default("development"),
   PORT: z.coerce.number().int().min(1).max(65535).default(4020),
   DATABASE_URL: z.string().min(1),
   API_KEY: z.string().default(""),
