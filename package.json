@@ -13,7 +13,7 @@
     "format": "biome check --write .",
     "typecheck": "pnpm build:packages && pnpm -r typecheck && tsc -p tools",
     "test": "pnpm build:packages && pnpm -r test",
-    "test:e2e": "pnpm build:packages && pnpm --filter api run test:e2e",
+    "test:e2e": "pnpm build:packages && pnpm --filter api run test:e2e && pnpm db:up && pnpm --filter web run test:e2e",
     "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm test:e2e && pnpm build",
     "db:up": "node scripts/ensure-env.mjs && docker compose up -d --wait db",
     "db:migrate": "pnpm --filter @alihdrndm/blockpace-db run db:migrate",
