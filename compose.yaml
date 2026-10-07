@@ -19,5 +19,72 @@ services:
     volumes:
       - db-data:/var/lib/postgresql/data
 
+  # Applies migrations at start (RUN_MIGRATIONS=true), so the worker and the seed wait for it.
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      DATABASE_URL: postgres://blockpace:blockpace@db:5432/blockpace
+      API_KEY: local-dev-key
+      RUN_MIGRATIONS: "true"
+      ALLOW_PRIVATE_WEBHOOK_TARGETS: "true"
+    ports:
+      - "4020:4020"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: .
+      dockerfile: apps/worker/Dockerfile
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://blockpace:blockpace@db:5432/blockpace
+      ALLOW_PRIVATE_WEBHOOK_TARGETS: "true"
+      WEBHOOK_POLL_MS: "2000"
+    depends_on:
+      api:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    environment:
+      API_BASE_URL: http://api:4020
+      API_KEY: local-dev-key
+    ports:
+      - "3020:3020"
+    depends_on:
+      api:
+        condition: service_healthy
+
+  webhook-sink:
+    image: node:24-slim
+    working_dir: /app
+    command: ["node", "tools/webhook-sink.ts"]
+    environment:
+      SINK_SECRET: dev-secret-do-not-use
+    volumes:
+      - ./tools:/app/tools:ro
+    ports:
+      - "4999:4999"
+
+  # One-shot: loads the demo blocks once the API has migrated the database, then exits.
+  seed:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    command: ["node", "node_modules/@alihdrndm/blockpace-db/dist/cli.js", "seed"]
+    restart: "no"
+    environment:
+      DATABASE_URL: postgres://blockpace:blockpace@db:5432/blockpace
+      SEED_WEBHOOK_URL: http://webhook-sink:4999/
+    depends_on:
+      api:
+        condition: service_healthy
+
 volumes:
   db-data:
