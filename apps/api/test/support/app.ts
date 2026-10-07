@@ -3,6 +3,7 @@ import type { INestApplication } from "@nestjs/common";
 import { sql } from "drizzle-orm";
 import request from "supertest";
 import { afterAll, beforeAll, inject } from "vitest";
+import type { AppOptions } from "../../src/app.module.js";
 import { createApp } from "../../src/bootstrap.js";
 import type { Config } from "../../src/config.js";
 
@@ -35,14 +36,17 @@ export interface TestApp {
  * Starts the real app (same createApp as production) against the shared test database and
  * empties every table first, so each test file starts from nothing.
  */
-export function useTestApp(overrides: Partial<Config> = {}): TestApp {
+export function useTestApp(
+  overrides: Partial<Config> = {},
+  options: AppOptions = {},
+): TestApp {
   let app: INestApplication | undefined;
   const pool = createPool(inject("dbUrl"));
   const db = createDb(pool);
 
   beforeAll(async () => {
     await db.execute(sql`truncate table blocks, webhook_endpoints cascade`);
-    app = await createApp(testConfig(overrides));
+    app = await createApp(testConfig(overrides), options);
     await app.init();
   });
   afterAll(async () => {
