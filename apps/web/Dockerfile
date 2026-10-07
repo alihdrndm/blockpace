@@ -4,7 +4,8 @@ RUN corepack enable
 WORKDIR /repo
 COPY . .
 RUN pnpm install --frozen-lockfile
-RUN pnpm --filter web run build
+# core must be built first: the web app imports its compiled dist/.
+RUN pnpm build:packages && pnpm --filter web run build
 # --prod keeps runtime dependencies only; the Next.js build output is copied in afterwards.
 RUN pnpm --filter web deploy --prod /out && cp -r apps/web/.next /out/.next
 
