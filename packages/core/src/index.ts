@@ -1,2 +1,7 @@
 export const CORE_PACKAGE = "@alihdrndm/blockpace-core";
-export type { IsoDate } from "./plain-date.js";
+export { type EvaluateInput, evaluate } from "./evaluate.js";
+export { forecast } from "./forecast.js";
+export * from "./model.js";
+export { divRoundHalfUp, roundMinimum, toBps, toSafeNumber } from "./money.js";
+export * from "./plain-date.js";
+export { type RiskInput, riskLevel } from "./risk.js";

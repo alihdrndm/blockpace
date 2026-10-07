@@ -63,3 +63,11 @@ Format: date, what HANDOFF.md said, what was done, why.
 - **HANDOFF.md:** "worked-example JSON" in `fixtures/`, no shape given.
 - **Done:** `fixtures/we1.json`, `we2.json`, `we3.json`; each has a base block, snapshots, `cases` (one per basis, with expected numbers copied from HANDOFF.md) and optional `variants` (WE1 damages 80%, WE2b, WE2c). WE2b/WE2c live inside `we2.json`.
 - **Why:** one source of truth that tests load, so numbers are not retyped in test code.
+
+## 2026-10-07 — `IsoDateSchema` is a refined string, not a transform
+- **HANDOFF.md:** OpenAPI schemas must be derived from the Zod schemas with `z.toJSONSchema()`.
+- **Done:** `IsoDateSchema` validates with a regex plus a real-calendar-date refine and carries the `IsoDate` brand only in its TypeScript type. A test in `model.test.ts` proves `BlockSchema` and `EvaluationSchema` convert to JSON Schema.
+- **Why:** an earlier version used `.transform()`, which Zod cannot represent in JSON Schema and would have broken the M3 Swagger docs (found by the M1 reviewer).
+
+## 2026-10-07 — Duplicate nights in one snapshot
+- `SnapshotSchema` rejects a snapshot that lists the same night twice (a `VALIDATION_FAILED` case in M3). `checkSnapshotAgainstBlock` therefore receives snapshots with unique nights and only reports missing, extra and over-resold nights.
