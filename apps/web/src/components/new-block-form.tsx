@@ -8,12 +8,26 @@ import { buttonClass, ErrorPanel, inputClass } from "./ui";
 
 const IDLE: FormState = { status: "idle" };
 
-/** New block: the grid of nights is generated from the first night and the number of nights. */
+interface NightInput {
+  contracted: string;
+  rate: string;
+}
+
+/**
+ * New block: the grid of nights is generated from the first night and the number of nights.
+ * Every field is controlled: React resets uncontrolled fields after a form action, even when
+ * the API rejects it, so a validation error would otherwise wipe the whole form.
+ */
 export function NewBlockForm() {
   const [state, formAction, pending] = useActionState(createBlock, IDLE);
+  const [name, setName] = useState("");
+  const [hotelName, setHotelName] = useState("");
+  const [currency, setCurrency] = useState("USD");
   const [firstNight, setFirstNight] = useState("");
   const [count, setCount] = useState("3");
+  const [cutoffDate, setCutoffDate] = useState("");
   const [terms, setTerms] = useState(DEFAULT_TERMS);
+  const [grid, setGrid] = useState<Record<string, NightInput>>({});
 
   const first = tryParseIsoDate(firstNight);
   const nightCount = Number(count);
@@ -24,34 +38,45 @@ export function NewBlockForm() {
     nightCount <= 60
       ? eachNight(first, nightCount)
       : [];
+  const cell = (date: string) => grid[date] ?? { contracted: "", rate: "" };
+  const setCell = (date: string, key: keyof NightInput, value: string) =>
+    setGrid((current) => ({
+      ...current,
+      [date]: { ...cell(date), [key]: value },
+    }));
 
   return (
     <form action={formAction} className="space-y-6">
       <div className="grid gap-3 sm:grid-cols-3">
-        <Field id="name" label="Block name" required maxLength={120} />
-        <Field id="hotelName" label="Hotel" required maxLength={120} />
+        <Field
+          id="name"
+          label="Block name"
+          value={name}
+          onChange={setName}
+          maxLength={120}
+        />
+        <Field
+          id="hotelName"
+          label="Hotel"
+          value={hotelName}
+          onChange={setHotelName}
+          maxLength={120}
+        />
         <Field
           id="currency"
           label="Currency (3 letters)"
-          required
-          defaultValue="USD"
+          value={currency}
+          onChange={setCurrency}
           pattern="[A-Za-z]{3}"
           maxLength={3}
         />
-        <div>
-          <label htmlFor="firstNight" className="block text-sm font-medium">
-            First night
-          </label>
-          <input
-            id="firstNight"
-            name="firstNight"
-            type="date"
-            required
-            value={firstNight}
-            onChange={(e) => setFirstNight(e.target.value)}
-            className={inputClass}
-          />
-        </div>
+        <Field
+          id="firstNight"
+          label="First night"
+          type="date"
+          value={firstNight}
+          onChange={setFirstNight}
+        />
         <div>
           <label htmlFor="nightCount" className="block text-sm font-medium">
             Number of nights
@@ -68,7 +93,13 @@ export function NewBlockForm() {
             className={`${inputClass} w-24`}
           />
         </div>
-        <Field id="cutoffDate" label="Cutoff date" type="date" required />
+        <Field
+          id="cutoffDate"
+          label="Cutoff date"
+          type="date"
+          value={cutoffDate}
+          onChange={setCutoffDate}
+        />
       </div>
 
       <TermsFields value={terms} onChange={setTerms} />
@@ -113,6 +144,10 @@ export function NewBlockForm() {
                       max={5000}
                       step={1}
                       required
+                      value={cell(date).contracted}
+                      onChange={(e) =>
+                        setCell(date, "contracted", e.target.value)
+                      }
                       className={`${inputClass} w-24`}
                     />
                   </td>
@@ -126,6 +161,8 @@ export function NewBlockForm() {
                       inputMode="decimal"
                       placeholder="189.00"
                       required
+                      value={cell(date).rate}
+                      onChange={(e) => setCell(date, "rate", e.target.value)}
                       className={`${inputClass} w-28`}
                     />
                   </td>
@@ -151,14 +188,17 @@ export function NewBlockForm() {
 function Field({
   id,
   label,
+  value,
+  onChange,
   type = "text",
-  ...rest
+  pattern,
+  maxLength,
 }: {
   id: string;
   label: string;
+  value: string;
+  onChange: (next: string) => void;
   type?: string;
-  required?: boolean;
-  defaultValue?: string;
   pattern?: string;
   maxLength?: number;
 }) {
@@ -167,7 +207,17 @@ function Field({
       <label htmlFor={id} className="block text-sm font-medium">
         {label}
       </label>
-      <input id={id} name={id} type={type} className={inputClass} {...rest} />
+      <input
+        id={id}
+        name={id}
+        type={type}
+        required
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={inputClass}
+        {...(pattern === undefined ? {} : { pattern })}
+        {...(maxLength === undefined ? {} : { maxLength })}
+      />
     </div>
   );
 }
