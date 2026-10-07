@@ -119,6 +119,23 @@ describe("PUT /v1/blocks/:id/snapshots/:asOfDate", () => {
       expect(deliveries.map((d) => d.endpointId).sort()).toEqual(
         [...endpointIds].sort(),
       );
+      for (const delivery of deliveries) {
+        expect(delivery).toMatchObject({
+          status: "pending",
+          attempts: 0,
+          eventType: alert.type,
+        });
+        // The webhook body is the alert payload: id, type, createdAt, block, evaluation.
+        const body = delivery.body as Record<string, unknown>;
+        expect(body).toMatchObject({ id: alert.id, type: alert.type });
+        expect(body.createdAt).toMatch(
+          /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/,
+        );
+        expect(body.block).toMatchObject({ id: blockId, currency: "USD" });
+        expect(body.evaluation).toMatchObject({ riskLevel: "at_risk" });
+        // First evaluation of the block: there is no previous level to report.
+        expect("previousRiskLevel" in body).toBe(false);
+      }
     }
   });
 
