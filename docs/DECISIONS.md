@@ -117,3 +117,4 @@ Format: date, what HANDOFF.md said, what was done, why.
 - **Request id:** a caller-supplied `x-request-id` is reused when it is 1 to 200 characters, otherwise a UUID v7 is generated.
 - **API key comparison:** both values are SHA-256 hashed and the digests compared with `crypto.timingSafeEqual`, so the comparison takes the same time whatever the key's length.
 - The stateless calculator endpoint was built in slice 2 (not 3) because it is the first `/v1` route the auth, validation and docs tests need.
+- 2026-10-07 follow-up: `@scarf/scarf` (install analytics, pulled in by Swagger UI) is denied too, and `strictDepBuilds: true` makes a local `pnpm install` fail the same way CI does, so a new unreviewed build script is caught before it is pushed.
