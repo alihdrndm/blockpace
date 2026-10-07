@@ -18,7 +18,10 @@ const header = (value: string | string[] | undefined): string =>
 // replaced before printing. Otherwise a crafted request could forge extra log lines, such as a
 // fake "signature OK".
 const printable = (value: string): string =>
-  value.replace(/[^\w.:-]/g, "?").slice(0, 100);
+  value
+    .replace(/[\r\n]/g, "")
+    .replace(/[^\w.:-]/g, "?")
+    .slice(0, 100);
 
 /** Recomputes v1=HMAC-SHA256(secret, "timestamp.rawBody") and compares in constant time. */
 function signatureMatches(
