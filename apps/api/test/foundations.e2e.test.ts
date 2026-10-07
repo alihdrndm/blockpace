@@ -118,6 +118,20 @@ describe("authentication (x-api-key)", () => {
       expect(res.status, path).toBe(200);
     }
   });
+
+  it("UNAUTHORIZED: changing the case of the path does not skip the key check", async () => {
+    // Express matches routes case-insensitively, so /V1/... reaches the same handlers.
+    for (const path of [
+      "/V1/calculations/attrition",
+      "/v1/Calculations/attrition",
+      "/V1/BLOCKS",
+    ]) {
+      const res = await http().post(path).send({});
+      expect(res.status, path).toBe(401);
+      expect(res.body.code).toBe("UNAUTHORIZED");
+    }
+    await http().get("/V1/blocks").expect(401);
+  });
 });
 
 describe("security headers and docs", () => {
