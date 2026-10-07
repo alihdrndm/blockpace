@@ -9,10 +9,14 @@ test("dashboard, block detail and calculator show the expected numbers", async (
   await expect(rows).toHaveCount(4); // header + three seeded blocks
   // Accessible names leave out the badge's decorative icon.
   for (const badge of ["On track", "At risk", "Minimum met"]) {
-    await expect(page.getByRole("cell", { name: badge, exact: true })).toBeVisible();
+    await expect(
+      page.getByRole("cell", { name: badge, exact: true }),
+    ).toBeVisible();
   }
 
   await page.getByRole("link", { name: "Courtyard Annex" }).click();
+  // In dev mode the first visit compiles the page, so allow time for the navigation.
+  await page.waitForURL(/\/blocks\/[0-9a-f-]{36}$/, { timeout: 60_000 });
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("TechConf");
   const projected = page
     .locator("div", {
