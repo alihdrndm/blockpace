@@ -11,6 +11,8 @@ allowBuilds:
   protobufjs: false
   ssh2: false
   "@scarf/scarf": false
+  # Pulled in by SST; its install script only prints a maintenance notice.
+  aws-sdk: false
 # Fail locally, exactly like CI, when a new dependency brings an unreviewed build script,
 # instead of only printing a warning that is easy to miss.
 strictDepBuilds: true
