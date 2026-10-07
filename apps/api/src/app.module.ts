@@ -15,6 +15,8 @@ import { DbModule } from "./db/db.module.js";
 import { ProblemFilter } from "./errors/problem.filter.js";
 import { validationPipe } from "./errors/validation.js";
 import { HealthController } from "./health/health.controller.js";
+import { SnapshotsController } from "./snapshots/snapshots.controller.js";
+import { SnapshotsService } from "./snapshots/snapshots.service.js";
 
 const REQUEST_ID = "x-request-id";
 
@@ -79,9 +81,15 @@ export class AppModule {
         LoggerModule.forRoot(loggerOptions(config)),
         ThrottlerModule.forRoot([{ ttl: 60_000, limit: 120 }]),
       ],
-      controllers: [HealthController, CalculationsController, BlocksController],
+      controllers: [
+        HealthController,
+        CalculationsController,
+        BlocksController,
+        SnapshotsController,
+      ],
       providers: [
         BlocksService,
+        SnapshotsService,
         // Guards run in this order: rate limit first, then the API key.
         { provide: APP_GUARD, useClass: ThrottlerGuard },
         { provide: APP_GUARD, useClass: ApiKeyGuard },
