@@ -1,4 +1,5 @@
 import { ProblemDetailsSchema } from "@alihdrndm/blockpace-core";
+import { ZodError } from "zod";
 
 // Errors from the API arrive as application/problem+json. The pages show `title` and `detail`.
 
@@ -44,6 +45,14 @@ export function errorView(error: unknown): ErrorView {
       ...(error.fieldErrors.length > 0
         ? { fieldErrors: error.fieldErrors }
         : {}),
+    };
+  }
+  // The API answered, but not in the shape the shared schemas describe (version mismatch).
+  if (error instanceof ZodError) {
+    return {
+      title: "Unexpected response",
+      detail:
+        "The blockpace API returned a response the dashboard did not expect.",
     };
   }
   return {
