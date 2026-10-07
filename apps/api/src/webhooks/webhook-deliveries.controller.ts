@@ -1,4 +1,5 @@
 import {
+  type DeliveriesQuery,
   DeliveriesQuerySchema,
   listOf,
   ProblemDetailsSchema,
@@ -47,12 +48,7 @@ export class WebhookDeliveriesController {
   })
   list(
     @Query({ schema: DeliveriesQuerySchema })
-    query: {
-      limit: number;
-      cursor?: string;
-      status?: "pending" | "delivered" | "failed";
-      endpointId?: string;
-    },
+    query: DeliveriesQuery,
   ) {
     return this.webhooks.listDeliveries(query);
   }

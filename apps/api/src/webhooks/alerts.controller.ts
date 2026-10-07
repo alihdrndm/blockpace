@@ -1,5 +1,6 @@
 import {
   AlertEventSchema,
+  type AlertsQuery,
   AlertsQuerySchema,
   listOf,
   ProblemDetailsSchema,
@@ -45,13 +46,7 @@ export class AlertsController {
     description: "VALIDATION_FAILED",
     standardSchema: ProblemDetailsSchema,
   })
-  list(
-    @Query({ schema: AlertsQuerySchema }) query: {
-      limit: number;
-      cursor?: string;
-      blockId?: string;
-    },
-  ) {
+  list(@Query({ schema: AlertsQuerySchema }) query: AlertsQuery) {
     return this.webhooks.listAlerts(query);
   }
 }

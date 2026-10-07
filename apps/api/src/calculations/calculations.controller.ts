@@ -39,6 +39,11 @@ export class CalculationsController {
     standardSchema: EvaluationSchema,
   })
   @ApiResponse({
+    status: 400,
+    description: "BAD_REQUEST (body is not valid JSON)",
+    standardSchema: ProblemDetailsSchema,
+  })
+  @ApiResponse({
     status: 401,
     description: "Missing or wrong API key",
     standardSchema: ProblemDetailsSchema,

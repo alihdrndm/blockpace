@@ -1,6 +1,9 @@
 import {
+  type CreateWebhookEndpointRequest,
   CreateWebhookEndpointRequestSchema,
   IdParamSchema,
+  type IdParams,
+  type ListQuery,
   ListQuerySchema,
   listOf,
   ProblemDetailsSchema,
@@ -51,9 +54,11 @@ export class WebhookEndpointsController {
     description: "The endpoint and its secret",
     standardSchema: WebhookEndpointCreatedSchema,
   })
+  @problem(400, "BAD_REQUEST (body is not valid JSON)")
   @problem(422, "VALIDATION_FAILED or WEBHOOK_URL_NOT_ALLOWED")
   create(
-    @Body({ schema: CreateWebhookEndpointRequestSchema }) body: { url: string },
+    @Body({ schema: CreateWebhookEndpointRequestSchema })
+    body: CreateWebhookEndpointRequest,
   ) {
     return this.webhooks.createEndpoint(body.url);
   }
@@ -68,12 +73,7 @@ export class WebhookEndpointsController {
     standardSchema: listOf(WebhookEndpointSchema),
   })
   @problem(422, "VALIDATION_FAILED (bad limit or cursor)")
-  list(
-    @Query({ schema: ListQuerySchema }) query: {
-      limit: number;
-      cursor?: string;
-    },
-  ) {
+  list(@Query({ schema: ListQuerySchema }) query: ListQuery) {
     return this.webhooks.listEndpoints(query);
   }
 
@@ -86,7 +86,7 @@ export class WebhookEndpointsController {
   @problem(404, "NOT_FOUND")
   @problem(422, "VALIDATION_FAILED (id is not a UUID)")
   async remove(
-    @Param({ schema: IdParamSchema }) params: { id: string },
+    @Param({ schema: IdParamSchema }) params: IdParams,
   ): Promise<void> {
     await this.webhooks.removeEndpoint(params.id);
   }
@@ -101,7 +101,7 @@ export class WebhookEndpointsController {
   })
   @problem(404, "NOT_FOUND")
   @problem(422, "VALIDATION_FAILED (id is not a UUID)")
-  sendTest(@Param({ schema: IdParamSchema }) params: { id: string }) {
+  sendTest(@Param({ schema: IdParamSchema }) params: IdParams) {
     return this.webhooks.sendTest(params.id);
   }
 }
