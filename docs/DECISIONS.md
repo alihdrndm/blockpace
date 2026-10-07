@@ -103,3 +103,6 @@ Format: date, what HANDOFF.md said, what was done, why.
 - `packages/db` exports `loadEvaluationInput` and `termsFromRow` so live evaluations, the pace chart and the block list read blocks the same way `recordEvaluation` does.
 - The webhook URL rule (`apps/api/src/webhooks/webhook-url.ts`) also blocks IPv4-mapped IPv6 addresses (`::ffff:10.0.0.1`) and `0.0.0.0/8`, and refuses a host that resolves to no address. These are stricter readings of "loopback, private ... unspecified".
 - `.gitattributes` forces LF line endings so Windows checkouts with `core.autocrlf=true` match `.editorconfig` and Biome and do not show phantom changes.
+
+## 2026-10-07 — pnpm build scripts denied explicitly
+- pnpm 12 fails `pnpm install --frozen-lockfile` (CI) when a dependency has a build script that is neither allowed nor denied. `pnpm-workspace.yaml` denies the four that appear (`esbuild`, plus `cpu-features`, `protobufjs`, `ssh2` from Testcontainers); none is needed at runtime. This fixed the first CI runs, which failed at install.

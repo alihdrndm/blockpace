@@ -1,5 +1,12 @@
 packages:
   - packages/*
   - apps/*
+# Install scripts that pnpm may run. All of these are optional: esbuild ships prebuilt
+# binaries, and cpu-features, protobufjs and ssh2 (pulled in by Testcontainers) work
+# without their native or post-install steps. Listing them as false keeps installs
+# reproducible and stops `pnpm install --frozen-lockfile` failing in CI.
 allowBuilds:
   esbuild: false
+  cpu-features: false
+  protobufjs: false
+  ssh2: false
