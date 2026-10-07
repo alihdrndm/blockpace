@@ -16,9 +16,9 @@
     "test:e2e": "pnpm build:packages && pnpm --filter api run test:e2e && pnpm db:up && pnpm --filter web run test:e2e",
     "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm test:e2e && pnpm build",
     "db:up": "node scripts/ensure-env.mjs && docker compose up -d --wait db",
-    "db:migrate": "pnpm --filter @alihdrndm/blockpace-db run db:migrate",
-    "db:seed": "pnpm --filter @alihdrndm/blockpace-db run db:seed",
-    "db:reset": "pnpm --filter @alihdrndm/blockpace-db run db:reset",
+    "db:migrate": "pnpm build:packages && pnpm --filter @alihdrndm/blockpace-db run db:migrate",
+    "db:seed": "pnpm build:packages && pnpm --filter @alihdrndm/blockpace-db run db:seed",
+    "db:reset": "pnpm build:packages && pnpm --filter @alihdrndm/blockpace-db run db:reset",
     "build:packages": "pnpm --filter \"./packages/*\" run build",
     "sink": "tsx --env-file-if-exists=.env tools/webhook-sink.ts"
   },
