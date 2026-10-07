@@ -5,7 +5,7 @@ import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import helmet from "helmet";
 import { Logger } from "nestjs-pino";
-import { AppModule } from "./app.module.js";
+import { AppModule, type AppOptions } from "./app.module.js";
 import type { Config } from "./config.js";
 import { DB } from "./db/db.module.js";
 
@@ -13,9 +13,12 @@ import { DB } from "./db/db.module.js";
  * Builds the fully configured app without listening. main.ts and the e2e tests both use it,
  * so tests exercise exactly the middleware, guards, filter and docs that production runs.
  */
-export async function createApp(config: Config): Promise<INestApplication> {
+export async function createApp(
+  config: Config,
+  options: AppOptions = {},
+): Promise<INestApplication> {
   // CORS stays disabled (Nest's default): only the Next.js server calls this API.
-  const app = await NestFactory.create(AppModule.register(config), {
+  const app = await NestFactory.create(AppModule.register(config, options), {
     bufferLogs: true,
   });
   app.useLogger(app.get(Logger));

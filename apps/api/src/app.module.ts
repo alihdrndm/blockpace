@@ -1,5 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { newId } from "@alihdrndm/blockpace-core";
+import { type LookupAddresses, systemLookup } from "@alihdrndm/blockpace-db";
 import { type DynamicModule, Global, Module } from "@nestjs/common";
 import { APP_FILTER, APP_GUARD, APP_PIPE } from "@nestjs/core";
 import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
@@ -17,6 +18,11 @@ import { validationPipe } from "./errors/validation.js";
 import { HealthController } from "./health/health.controller.js";
 import { SnapshotsController } from "./snapshots/snapshots.controller.js";
 import { SnapshotsService } from "./snapshots/snapshots.service.js";
+import { AlertsController } from "./webhooks/alerts.controller.js";
+import { WEBHOOK_LOOKUP } from "./webhooks/lookup.token.js";
+import { WebhookDeliveriesController } from "./webhooks/webhook-deliveries.controller.js";
+import { WebhookEndpointsController } from "./webhooks/webhook-endpoints.controller.js";
+import { WebhooksService } from "./webhooks/webhooks.service.js";
 
 const REQUEST_ID = "x-request-id";
 
@@ -58,6 +64,12 @@ function loggerOptions(config: Config) {
   };
 }
 
+/** Test seams that cannot come from environment variables. */
+export interface AppOptions {
+  /** DNS lookup used by the webhook URL rule; tests pass a fake so they never touch the network. */
+  lookup?: LookupAddresses;
+}
+
 /**
  * The root module takes the already-parsed config, so tests build the exact same app
  * as production with a different Config object.
@@ -65,11 +77,15 @@ function loggerOptions(config: Config) {
 @Module({})
 // biome-ignore lint/complexity/noStaticOnlyClass: Nest dynamic modules are classes with a static register().
 export class AppModule {
-  static register(config: Config): DynamicModule {
+  static register(config: Config, options: AppOptions = {}): DynamicModule {
     @Global()
     @Module({
-      providers: [{ provide: CONFIG, useValue: config }, ClockService],
-      exports: [CONFIG, ClockService],
+      providers: [
+        { provide: CONFIG, useValue: config },
+        ClockService,
+        { provide: WEBHOOK_LOOKUP, useValue: options.lookup ?? systemLookup },
+      ],
+      exports: [CONFIG, ClockService, WEBHOOK_LOOKUP],
     })
     class ConfigModule {}
 
@@ -86,10 +102,14 @@ export class AppModule {
         CalculationsController,
         BlocksController,
         SnapshotsController,
+        WebhookEndpointsController,
+        AlertsController,
+        WebhookDeliveriesController,
       ],
       providers: [
         BlocksService,
         SnapshotsService,
+        WebhooksService,
         // Guards run in this order: rate limit first, then the API key.
         { provide: APP_GUARD, useClass: ThrottlerGuard },
         { provide: APP_GUARD, useClass: ApiKeyGuard },
