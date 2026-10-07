@@ -129,3 +129,12 @@ Format: date, what HANDOFF.md said, what was done, why.
   - `SECURITY.md` written now (instead of M6) because private vulnerability reporting is enabled now and the policy must exist when it is.
 - **Not done:** issue/PR templates, CODEOWNERS and a code of conduct (owner did not select them).
 - 2026-10-07 follow-up: the webhook URL rule moved to `packages/db/src/webhook-url.ts` so the worker (M4) can re-check URLs before every delivery without importing from `apps/api`.
+
+## M3 slices 4-5 (agent)
+- **Snapshot replace keeps the id.** `PUT .../snapshots/:asOfDate` on an existing date updates that row's `source` and `note` (a missing `note` clears it) and replaces its nights, so the snapshot id is stable. `snapshots` has no `updated_at` column in the spec, so none is added.
+- **Row lock for the 400 limit.** Every snapshot write locks the block row (`SELECT ... FOR UPDATE`) first, so two concurrent writers cannot both pass the "fewer than 400 snapshots" check. Replacing an existing date never counts against the limit.
+- **CSV import rules.** Column names are matched case-insensitively and in any order; unknown or duplicate columns, a missing file, an unreadable file and an empty file are `IMPORT_INVALID` (`path` is `row 1` for header problems, `file` for a missing or unreadable file). An empty `resold` cell means 0. Future dates, unknown nights, duplicate (date, night) rows and resold above contracted rooms are reported per row as `IMPORT_INVALID` rather than as their single-snapshot codes, because the import reports every problem at once. At most 100 errors are listed. The response status is 200 (the spec gives the body, not the status).
+- **Import size.** Multer rejects files over 1 MB before parsing; the global filter maps that to `413 PAYLOAD_TOO_LARGE`.
+- **Webhook test delivery.** `POST /v1/webhook-endpoints/:id/test` answers 202 with the queued delivery (the spec gives only the status).
+- **List endpoints.** The delivery list leaves out the stored webhook body (alerts keep their `payload`), and filtering alerts by an unknown `blockId` returns an empty page, not 404.
+- **DNS in tests.** `createApp(config, { lookup })` lets tests pass a fake DNS resolver to the webhook URL rule, so no test touches the network.
