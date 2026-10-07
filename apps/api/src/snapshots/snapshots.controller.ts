@@ -1,8 +1,9 @@
 import {
   IdParamSchema,
+  type IdParams,
   ImportResponseSchema,
-  type IsoDate,
   ProblemDetailsSchema,
+  type SnapshotParams,
   SnapshotParamsSchema,
   type SnapshotPutRequest,
   SnapshotPutRequestSchema,
@@ -61,7 +62,7 @@ export class SnapshotsController {
   })
   @problem(404, "NOT_FOUND")
   @problem(422, "VALIDATION_FAILED (id is not a UUID)")
-  list(@Param({ schema: IdParamSchema }) params: { id: string }) {
+  list(@Param({ schema: IdParamSchema }) params: IdParams) {
     return this.snapshots.list(params.id);
   }
 
@@ -76,6 +77,7 @@ export class SnapshotsController {
     description: "The saved snapshot and the new evaluation",
     standardSchema: SnapshotPutResponseSchema,
   })
+  @problem(400, "BAD_REQUEST (body is not valid JSON)")
   @problem(404, "NOT_FOUND")
   @problem(409, "SNAPSHOT_LIMIT")
   @problem(
@@ -83,10 +85,7 @@ export class SnapshotsController {
     "VALIDATION_FAILED, SNAPSHOT_NIGHTS_MISMATCH, SNAPSHOT_IN_FUTURE or RESOLD_EXCEEDS_CONTRACTED",
   )
   put(
-    @Param({ schema: SnapshotParamsSchema }) params: {
-      id: string;
-      asOfDate: IsoDate;
-    },
+    @Param({ schema: SnapshotParamsSchema }) params: SnapshotParams,
     @Body({ schema: SnapshotPutRequestSchema }) body: SnapshotPutRequest,
   ) {
     return this.snapshots.put(params.id, params.asOfDate, body);
@@ -99,10 +98,7 @@ export class SnapshotsController {
   @problem(404, "NOT_FOUND (block or snapshot)")
   @problem(422, "VALIDATION_FAILED")
   async remove(
-    @Param({ schema: SnapshotParamsSchema }) params: {
-      id: string;
-      asOfDate: IsoDate;
-    },
+    @Param({ schema: SnapshotParamsSchema }) params: SnapshotParams,
   ): Promise<void> {
     await this.snapshots.remove(params.id, params.asOfDate);
   }
@@ -135,10 +131,10 @@ export class SnapshotsController {
   })
   @problem(404, "NOT_FOUND")
   @problem(409, "SNAPSHOT_LIMIT")
-  @problem(413, "PAYLOAD_TOO_LARGE (over 1 MB)")
+  @problem(413, "PAYLOAD_TOO_LARGE (file over 1 MB)")
   @problem(422, "IMPORT_INVALID (errors[].path is row <n>)")
   importCsv(
-    @Param({ schema: IdParamSchema }) params: { id: string },
+    @Param({ schema: IdParamSchema }) params: IdParams,
     @UploadedFile() file: { buffer: Buffer } | undefined,
   ) {
     return this.snapshots.importCsv(params.id, file?.buffer);

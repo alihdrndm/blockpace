@@ -264,6 +264,15 @@ export const ProblemDetailsSchema = z.strictObject({
     .optional(),
 });
 
+export type IdParams = z.output<typeof IdParamSchema>;
+export type SnapshotParams = z.output<typeof SnapshotParamsSchema>;
+export type BlocksQuery = z.output<typeof BlocksQuerySchema>;
+export type AlertsQuery = z.output<typeof AlertsQuerySchema>;
+export type DeliveriesQuery = z.output<typeof DeliveriesQuerySchema>;
+export type EvaluationQuery = z.output<typeof EvaluationQuerySchema>;
+export type CreateWebhookEndpointRequest = z.output<
+  typeof CreateWebhookEndpointRequestSchema
+>;
 export type CreateBlockRequest = z.output<typeof CreateBlockRequestSchema>;
 export type PatchBlockRequest = z.output<typeof PatchBlockRequestSchema>;
 export type SnapshotPutRequest = z.output<typeof SnapshotPutRequestSchema>;

@@ -148,6 +148,7 @@ describe("security headers and docs", () => {
     expect(body).toContain("pickedUpRooms");
     expect(Object.keys(operation.responses).sort()).toEqual([
       "200",
+      "400",
       "401",
       "422",
       "429",
