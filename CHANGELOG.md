@@ -4,6 +4,8 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
 ## [0.1.0] - 2026-10-07
 
 First release.
@@ -18,3 +20,6 @@ First release.
 - `apps/web` (port 3020): dashboard, block page with pace chart and snapshot form, new block form, calculator and webhooks page.
 - Dockerfiles for the API, worker and web app, and a `compose.yaml` that starts the whole stack (database, API, worker, web, webhook sink, seed data) with `docker compose up --build`.
 - Documentation: README, architecture, decisions, assumptions, error codes, webhooks, contributing and security policy.
+
+[Unreleased]: https://github.com/alihdrndm/blockpace/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/alihdrndm/blockpace/releases/tag/v0.1.0
