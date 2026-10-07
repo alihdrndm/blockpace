@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { z } from "zod";
 import { ApiError, errorView, toApiError } from "./problem";
 
 describe("problem+json parsing", () => {
@@ -43,5 +44,31 @@ describe("problem+json parsing", () => {
       title: "Something went wrong",
       detail: "The dashboard could not reach the blockpace API. Is it running?",
     });
+  });
+
+  it("calls a response in the wrong shape unexpected, not unreachable", () => {
+    const parse = z.object({ id: z.string() }).safeParse({ id: 1 });
+    if (parse.success) throw new Error("expected a parse failure");
+    expect(errorView(parse.error).title).toBe("Unexpected response");
+  });
+});
+
+describe("path segments", () => {
+  it("accept only UUIDs and real dates, and encode them", async () => {
+    // api.ts reads env at import time; give it what it needs.
+    const { idSegment, dateSegment } = await import("./api");
+    expect(idSegment("01900000-0000-7000-8000-0000000000b2")).toBe(
+      "01900000-0000-7000-8000-0000000000b2",
+    );
+    for (const bad of [
+      "../blocks/01900000-0000-7000-8000-0000000000b2",
+      "x",
+      "",
+    ]) {
+      expect(() => idSegment(bad)).toThrow(ApiError);
+    }
+    expect(dateSegment("2026-10-06")).toBe("2026-10-06");
+    expect(() => dateSegment("2026-02-30")).toThrow(ApiError);
+    expect(() => dateSegment("../x")).toThrow(ApiError);
   });
 });
