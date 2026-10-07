@@ -2,6 +2,7 @@ import {
   type CreateBlockRequest,
   compareDates,
   decodeCursor,
+  type Evaluation,
   evaluate,
   type IsoDate,
   newId,
@@ -9,6 +10,7 @@ import {
 } from "@alihdrndm/blockpace-core";
 import {
   type BlockNightRow,
+  BlockNotFoundError,
   type BlockRow,
   blockNights,
   blocks,
@@ -223,9 +225,64 @@ export class BlocksService {
     if (deleted.length === 0) throw notFound(`Block ${id}`);
   }
 
+  /** Live evaluation, computed on request and never stored. */
+  async evaluation(id: string, asOf?: IsoDate): Promise<Evaluation> {
+    const input = await this.input(id);
+    return evaluate({
+      block: input.block,
+      snapshots: input.snapshots,
+      today: asOf ?? this.clock.today(),
+    });
+  }
+
+  /**
+   * One point per snapshot, each evaluated as if "today" were that snapshot's date and only the
+   * snapshots up to it existed. That is what the planner would have seen on each report date.
+   */
+  async pace(id: string) {
+    const { block, snapshots } = await this.input(id);
+    const totals = evaluate({
+      block,
+      snapshots: [],
+      today: this.clock.today(),
+    });
+    const ordered = [...snapshots].sort((a, b) =>
+      compareDates(a.asOfDate, b.asOfDate),
+    );
+    return {
+      contractedRoomNights: totals.contractedRoomNights,
+      minimumRoomNights: totals.minimumRoomNights,
+      cutoffDate: block.cutoffDate,
+      points: ordered.map((snapshot, i) => {
+        const point = evaluate({
+          block,
+          snapshots: ordered.slice(0, i + 1),
+          today: snapshot.asOfDate,
+        });
+        return {
+          asOfDate: snapshot.asOfDate,
+          pickedUpRoomNights: point.pickedUpRoomNights,
+          pickupPct: point.pickupPct,
+          shortfallRoomNights: point.shortfallRoomNights,
+          totalMinor: point.totalMinor,
+        };
+      }),
+    };
+  }
+
+  /** Loads a block for evaluation, turning "no such block" into a 404 instead of a 500. */
+  private async input(id: string) {
+    try {
+      return await loadEvaluationInput(this.db, id);
+    } catch (error) {
+      if (error instanceof BlockNotFoundError) throw notFound(`Block ${id}`);
+      throw error;
+    }
+  }
+
   /** The list's `latest` summary: evaluated live for the clock's today. */
   private async latestFor(id: string) {
-    const input = await loadEvaluationInput(this.db, id);
+    const input = await this.input(id);
     const evaluation = evaluate({
       block: input.block,
       snapshots: input.snapshots,

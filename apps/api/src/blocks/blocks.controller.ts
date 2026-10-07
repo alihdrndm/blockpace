@@ -4,8 +4,12 @@ import {
   BlocksQuerySchema,
   type CreateBlockRequest,
   CreateBlockRequestSchema,
+  EvaluationQuerySchema,
+  EvaluationSchema,
   IdParamSchema,
+  type IsoDate,
   listOf,
+  PaceResponseSchema,
   type PatchBlockRequest,
   PatchBlockRequestSchema,
   ProblemDetailsSchema,
@@ -91,6 +95,40 @@ export class BlocksController {
   @problem(422, "VALIDATION_FAILED (id is not a UUID)")
   get(@Param({ schema: IdParamSchema }) params: { id: string }) {
     return this.blocks.get(params.id);
+  }
+
+  @Get(":id/evaluation")
+  @ApiOperation({
+    summary:
+      "Evaluate the block now (or as of a date) without storing anything",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "The evaluation",
+    standardSchema: EvaluationSchema,
+  })
+  @problem(404, "NOT_FOUND")
+  @problem(422, "VALIDATION_FAILED (bad id or asOf)")
+  evaluation(
+    @Param({ schema: IdParamSchema }) params: { id: string },
+    @Query({ schema: EvaluationQuerySchema }) query: { asOf?: IsoDate },
+  ) {
+    return this.blocks.evaluation(params.id, query.asOf);
+  }
+
+  @Get(":id/pace")
+  @ApiOperation({
+    summary: "Pickup over time: one evaluated point per snapshot",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "The pace series",
+    standardSchema: PaceResponseSchema,
+  })
+  @problem(404, "NOT_FOUND")
+  @problem(422, "VALIDATION_FAILED (id is not a UUID)")
+  pace(@Param({ schema: IdParamSchema }) params: { id: string }) {
+    return this.blocks.pace(params.id);
   }
 
   @Patch(":id")
