@@ -7,11 +7,11 @@
   },
   "packageManager": "pnpm@12.9.1+sha512.06b055fff5cd20dc12781de173ced3310ce0951bf2ec620211a16045d5444d5c93a663210764ef29a653a610459ba0368f0e74f84d80c54723cf95aae7bc0d6d",
   "scripts": {
-    "dev": "pnpm db:up && concurrently -n api,worker,web -c blue,green,magenta \"pnpm --filter api run dev\" \"pnpm --filter worker run dev\" \"pnpm --filter web run dev\"",
+    "dev": "pnpm db:up && concurrently -n api,worker,web,sink -c blue,green,magenta,yellow \"pnpm --filter api run dev\" \"pnpm --filter worker run dev\" \"pnpm --filter web run dev\" \"pnpm sink\"",
     "build": "pnpm -r build",
     "lint": "biome check .",
     "format": "biome check --write .",
-    "typecheck": "pnpm build:packages && pnpm -r typecheck",
+    "typecheck": "pnpm build:packages && pnpm -r typecheck && tsc -p tools",
     "test": "pnpm build:packages && pnpm -r test",
     "test:e2e": "pnpm build:packages && pnpm --filter api run test:e2e",
     "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm test:e2e && pnpm build",
@@ -19,7 +19,8 @@
     "db:migrate": "pnpm --filter @alihdrndm/blockpace-db run db:migrate",
     "db:seed": "pnpm --filter @alihdrndm/blockpace-db run db:seed",
     "db:reset": "pnpm --filter @alihdrndm/blockpace-db run db:reset",
-    "build:packages": "pnpm --filter \"./packages/*\" run build"
+    "build:packages": "pnpm --filter \"./packages/*\" run build",
+    "sink": "tsx --env-file-if-exists=.env tools/webhook-sink.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.15",
