@@ -1,3 +1,7 @@
+# A fixed project name, so `pnpm db:up` reuses the same database container from any checkout
+# or git worktree instead of starting a second one on port 5442.
+name: blockpace
+
 services:
   db:
     image: postgres:17

@@ -10,7 +10,9 @@ const FIXED_TODAY = "2026-10-06";
 
 export default defineConfig({
   testDir: "./e2e",
-  timeout: 60_000,
+  timeout: 120_000,
+  // `next dev` compiles each page on first visit, which can take several seconds on a busy machine.
+  expect: { timeout: 20_000 },
   retries: 0,
   reporter: "list",
   use: { baseURL: `http://localhost:${WEB_PORT}`, trace: "retain-on-failure" },
