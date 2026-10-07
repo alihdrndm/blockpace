@@ -108,8 +108,10 @@ curl -X PUT -H "x-api-key: local-dev-key" -H "content-type: application/json" \
   -d '{"nights":[{"date":"<night 1>","pickedUpRooms":10},{"date":"<night 2>","pickedUpRooms":10},{"date":"<night 3>","pickedUpRooms":10},{"date":"<night 4>","pickedUpRooms":10}]}'
 docker compose logs webhook-sink
 ```
+The worker polls every 2 seconds, so the new line appears within a few seconds. Output reduced to the last line; the log also shows the startup message and the alerts the seed raised:
+
 ```text
-RISK_LEVEL_CHANGED 01a1170c-7bbc-7056-b62f-3a97dd923ef4 signature OK
+webhook-sink-1  | RISK_LEVEL_CHANGED 01a1170c-7bbc-7056-b62f-3a97dd923ef4 signature OK
 ```
 
 The risk level moved from `on_track` to `at_risk`. The API raised the alert in the same database transaction as the snapshot, the worker delivered it signed with HMAC-SHA256, and the local webhook sink verified the signature.

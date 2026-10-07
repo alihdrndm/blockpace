@@ -7,7 +7,7 @@ blockpace is deploy-ready with [SST v3](https://sst.dev/docs). Nothing is deploy
 - An AWS account you control, with permission to create VPCs, ECS, RDS, load balancers, S3, CloudFront, Lambda and IAM roles.
 - AWS credentials on your machine: `aws configure` or `aws sso login`. SST uses the default credential chain ([guide](https://sst.dev/docs/iam-credentials)).
 - Docker running locally: SST builds the API and worker images from `apps/api/Dockerfile` and `apps/worker/Dockerfile`.
-- `pnpm install` done at the repo root.
+- `pnpm install` and then `pnpm build:packages` done at the repo root: the Next.js site is built from `apps/web`, which imports the compiled `packages/core`.
 
 ## Commands
 
