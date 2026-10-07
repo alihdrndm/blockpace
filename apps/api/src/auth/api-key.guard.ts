@@ -20,7 +20,17 @@ export function keysMatch(given: string, expected: string): boolean {
   return timingSafeEqual(digest(given), digest(expected));
 }
 
-/** Protects every /v1 route with the x-api-key header. Health checks and docs stay open. */
+// Routes that never need the key. Everything else needs it. The check is a closed list compared in
+// lower case because Express matches routes without regard to case: an earlier "starts with /v1/"
+// test let "/V1/blocks" through unauthenticated.
+const OPEN_PATHS = new Set(["/healthz", "/readyz", "/docs", "/docs-json"]);
+
+export function isOpenPath(path: string): boolean {
+  const lower = path.toLowerCase().replace(/\/+$/, "");
+  return OPEN_PATHS.has(lower) || lower.startsWith("/docs/");
+}
+
+/** Protects every route with the x-api-key header except health checks and the API docs. */
 @Injectable()
 export class ApiKeyGuard implements CanActivate {
   constructor(@Inject(CONFIG) private readonly config: Config) {
@@ -33,7 +43,7 @@ export class ApiKeyGuard implements CanActivate {
 
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest<Request>();
-    if (!request.path.startsWith("/v1/") && request.path !== "/v1") return true;
+    if (isOpenPath(request.path)) return true;
     if (this.config.API_KEY === "") return true;
 
     const given = request.header("x-api-key");
