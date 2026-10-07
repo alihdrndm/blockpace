@@ -148,3 +148,11 @@ Format: date, what HANDOFF.md said, what was done, why.
 - **`pino` and `pino-http`** are runtime dependencies of `apps/api` (OP7): they are peer dependencies of `nestjs-pino`, which HANDOFF names.
 - **Known cost:** `GET /v1/blocks` evaluates each listed block with its own queries (about 3 per block). Fine at this project's scale; a batched loader is the fix if lists grow.
 - **For M6:** rate limiting keys on the client IP. Behind a load balancer the API must trust the proxy's `X-Forwarded-For`, or every caller shares one budget.
+
+## M4 (agent)
+- **Worker config:** HANDOFF.md names only `apps/api/src/config.ts` and `apps/web/src/env.ts` as `process.env` readers. The worker is a separate process with its own settings, so `apps/worker/src/config.ts` is a third reader (Zod, parsed once, exit 1 on invalid config). Nothing else in the worker reads `process.env`.
+- **`attempts` counts every try:** HANDOFF.md says `attempts += 1` on failure. The worker also adds 1 on success, so `attempts` is the number of requests actually sent (a first-try success shows 1, not 0).
+- **Due rows use the injected clock:** HANDOFF.md writes the poll query with SQL `now()`. The worker passes `clock.now()` instead (`next_attempt_at <= $now`, and `now + backoff` when rescheduling), so tests can walk the whole retry schedule deterministically. In production both are the current instant.
+- **Delivery and result in one transaction:** the row locks taken by `FOR UPDATE SKIP LOCKED` are held while the batch is sent and its results written, which is what makes concurrent workers safe. A batch is at most 20 rows and each request times out after `WEBHOOK_TIMEOUT_MS`.
+- **Redirects:** `fetch` runs with `redirect: "manual"`; a 3xx response is recorded as a failure with its status code.
+- **`SINK_SECRET`** was added to `.env.example` (matching the seeded endpoint's secret) and `pnpm dev` now also starts the sink. `tools/` is type-checked by `pnpm typecheck` through `tools/tsconfig.json`.
