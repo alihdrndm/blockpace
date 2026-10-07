@@ -128,3 +128,4 @@ Format: date, what HANDOFF.md said, what was done, why.
   - `.github/rulesets/protect-main.json`: the ruleset applied to `main` (PR required, squash only, CI and CodeQL must pass, no force-push, no deletion, linear history, conversations resolved). Zero required approvals because the owner is the only maintainer and GitHub does not let authors approve their own PRs.
   - `SECURITY.md` written now (instead of M6) because private vulnerability reporting is enabled now and the policy must exist when it is.
 - **Not done:** issue/PR templates, CODEOWNERS and a code of conduct (owner did not select them).
+- 2026-10-07 follow-up: the webhook URL rule moved to `packages/db/src/webhook-url.ts` so the worker (M4) can re-check URLs before every delivery without importing from `apps/api`.

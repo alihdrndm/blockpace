@@ -1,8 +1,10 @@
 import { lookup as dnsLookup } from "node:dns/promises";
 import { BlockList, isIP } from "node:net";
 
-// The webhook URL rule. It runs when an endpoint is created and again before every delivery,
-// so a webhook can never be pointed at this server's own network (SSRF). It does NOT defend
+// The webhook URL rule, shared by the API (endpoint creation) and the worker (before every
+// delivery). It lives in packages/db only because that is the package both apps import;
+// the rule itself touches no database.
+// It stops a webhook being pointed at this server's own network (SSRF). It does NOT defend
 // against DNS rebinding: the address can change between this check and the request.
 
 export type LookupAddresses = (
