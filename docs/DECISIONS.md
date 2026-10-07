@@ -71,3 +71,28 @@ Format: date, what HANDOFF.md said, what was done, why.
 
 ## 2026-10-07 — Duplicate nights in one snapshot
 - `SnapshotSchema` rejects a snapshot that lists the same night twice (a `VALIDATION_FAILED` case in M3). `checkSnapshotAgainstBlock` therefore receives snapshots with unique nights and only reports missing, extra and over-resold nights.
+
+## 2026-10-07 — `packages/db` reads two env variables in one file
+- **HANDOFF.md:** `process.env` is read only in `apps/api/src/config.ts` and `apps/web/src/env.ts`.
+- **Done:** `packages/db/src/env.ts` parses `DATABASE_URL`, `FIXED_TODAY` and `SEED_WEBHOOK_URL` for the `db:migrate`, `db:seed` and `db:reset` scripts. The API and worker never import it. The scripts load the root `.env` with `tsx --env-file-if-exists=../../.env`.
+- **Why:** those three scripts run outside the API, so they need their own entry point. Owner approved. `zod` is a runtime dependency of `packages/db` only for this file.
+
+## 2026-10-07 — Seed replaces its own rows by fixed id
+- **HANDOFF.md:** `pnpm db:seed` is idempotent: running it twice leaves the same data.
+- **Done:** the 3 demo blocks, their snapshots and the sink endpoint have fixed ids (`01900000-0000-7000-8000-...`). Each run deletes the three blocks (their nights, snapshots, evaluations, alerts and the deliveries of those alerts cascade) and recreates them relative to the clock's today. The sink endpoint is upserted, not deleted, so deliveries queued for other blocks survive; the upsert resets its `url`, `secret` and `active` to the seed values. Your own blocks are never touched. Alert ids and timestamps are new on each run; the alerts themselves (type and dedupe key) are identical.
+- **Why:** owner chose this over "skip if present", which would leave stale dates on a later day. Block names are `TechConf` / `Sales Kickoff` and the hotel is a separate field (`Harborview Hotel`, `Courtyard Annex`, `Lakeside Resort`).
+
+## 2026-10-07 — `recordEvaluation` details the spec leaves open
+- Closed blocks still get their `evaluations` row; only alerts and deliveries are skipped (owner decision).
+- Signature is `recordEvaluation(tx, blockId, today, now = new Date())`; the optional `now` sets alert `createdAt` and `next_attempt_at` so tests are deterministic. It returns `{ evaluation, alerts }` where `alerts` holds only rows inserted by this call.
+- Ids come from `newId()` in `packages/core` (UUID v7 via the `uuid` package core already depends on), so `packages/db` needs no extra runtime dependency for ids.
+- Percentages are stored as basis points (`*_bps` integers) exactly as the HANDOFF table says, although the general conventions mention `numeric(5,2)`; the table is the more specific rule.
+
+## 2026-10-07 — Database tests need Docker
+- `pnpm test` now includes `packages/db`, which starts a real `postgres:17` with Testcontainers (as the conventions require for API e2e tests). Docker must be running. CI runners have Docker.
+
+## 2026-10-07 — Review fixes in M2
+- `evaluations` has an `updated_at` column (mutable table per the naming convention); `recordEvaluation` sets it on every same-day overwrite.
+- **HANDOFF.md:** every table has `id uuid` as primary key. **Done:** `block_nights` and `snapshot_nights` use only the composite keys the table specifies, (`block_id`, `night`) and (`snapshot_id`, `night`), with no `id` column. **Why:** the table row is more specific, and an extra id would add nothing a composite key does not already give.
+- Alert `created_at` and `next_attempt_at` are truncated to whole seconds so the row and the RFC 3339 `createdAt` in its payload agree exactly.
+- Callers in M3 and M4 must pass `clock.now()` as the fourth argument of `recordEvaluation`; the `new Date()` default exists for scripts only.
