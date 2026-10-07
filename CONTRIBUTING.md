@@ -6,7 +6,7 @@ Thanks for helping. This page covers everything you need for a first pull reques
 
 1. Install Node.js 24 (`.nvmrc` says `24`) and run `corepack enable`. Corepack installs the pnpm version pinned in `package.json`.
 2. Install Docker. The database for local development runs in Docker, and the database tests start their own PostgreSQL container with Testcontainers, so those tests fail without Docker.
-3. Run `pnpm install`, then `pnpm dev`. It copies `.env.example` to `.env` if needed, starts the database, and runs the API (port 4020), worker, web app (port 3020) and the local webhook sink (port 4999) with hot reload.
+3. Run `pnpm install`, then `pnpm db:up && pnpm db:reset` (creates `.env`, starts PostgreSQL, applies migrations and loads the demo data), then `pnpm dev`. `pnpm dev` copies `.env.example` to `.env` if needed, starts the database, and runs the API (port 4020), worker, web app (port 3020) and the local webhook sink (port 4999) with hot reload.
 
 To run the whole stack in containers instead, use `docker compose up --build`.
 
