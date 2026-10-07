@@ -80,11 +80,14 @@ export class ProblemFilter implements ExceptionFilter {
     exception: unknown,
     build: (status: number, code: ErrorCode, detail: string) => ProblemDetails,
   ): ProblemDetails {
-    this.logger.error(
-      exception instanceof Error
-        ? (exception.stack ?? exception.message)
-        : String(exception),
-    );
+    // Only the error type and stack frames are logged, never the message: a failed database
+    // query's message includes its parameters, which are values from the request body.
+    if (exception instanceof Error) {
+      const frames = (exception.stack ?? "").split("\n").slice(1).join("\n");
+      this.logger.error(`${exception.name} (message withheld)\n${frames}`);
+    } else {
+      this.logger.error(`non-Error thrown: ${typeof exception}`);
+    }
     return build(500, "INTERNAL", "An unexpected error occurred.");
   }
 

@@ -82,17 +82,18 @@ export class SnapshotsService {
     evaluation: Evaluation;
   }> {
     const today = this.clock.today();
-    if (compareDates(asOfDate, addDays(today, 1)) > 0) {
-      throw new ProblemException(
-        422,
-        "SNAPSHOT_IN_FUTURE",
-        "Snapshot date is in the future",
-        `asOfDate ${asOfDate} is later than ${addDays(today, 1)} (today + 1 day).`,
-      );
-    }
 
     return this.db.transaction(async (tx) => {
+      // The block is checked first, so an unknown block is 404 whatever the date says.
       const block = await this.lockBlock(tx, blockId);
+      if (compareDates(asOfDate, addDays(today, 1)) > 0) {
+        throw new ProblemException(
+          422,
+          "SNAPSHOT_IN_FUTURE",
+          "Snapshot date is in the future",
+          `asOfDate ${asOfDate} is later than ${addDays(today, 1)} (today + 1 day).`,
+        );
+      }
       const snapshot: Snapshot = { asOfDate, nights: request.nights };
 
       const mismatch = checkSnapshotAgainstBlock(block, snapshot);

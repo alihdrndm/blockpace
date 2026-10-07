@@ -34,6 +34,11 @@ describe("ProblemFilter", () => {
     expect(JSON.stringify(problem)).not.toContain("hunter2");
     // The details go to the log instead, for whoever runs the server.
     expect(logged).toHaveBeenCalledOnce();
+    // The log keeps the error type and stack, but not the message, which may hold request values.
+    expect(String(logged.mock.calls[0]?.[0])).toContain(
+      "Error (message withheld)",
+    );
+    expect(String(logged.mock.calls[0]?.[0])).not.toContain("hunter2");
   });
 
   it("keeps the code, detail and field errors of a ProblemException", () => {
