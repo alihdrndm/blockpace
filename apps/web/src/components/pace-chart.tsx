@@ -38,6 +38,9 @@ export function PaceChart({
     pickup: p.pickedUpRoomNights,
   }));
   const cutoffDay = diffDays(cutoffDate, first);
+  // The domain always includes the cutoff, also when it falls before the first snapshot
+  // (reports recorded after the cutoff), so the cutoff line is never silently dropped.
+  const firstDay = Math.min(0, cutoffDay);
   const lastDay = Math.max(cutoffDay, ...data.map((d) => d.day));
   const label = (day: number) => addDays(first, day);
 
@@ -53,7 +56,7 @@ export function PaceChart({
             <XAxis
               dataKey="day"
               type="number"
-              domain={[0, lastDay]}
+              domain={[firstDay, lastDay]}
               tickFormatter={label}
               stroke="#334155"
             />
@@ -62,6 +65,8 @@ export function PaceChart({
               stroke="#334155"
             />
             <Tooltip
+              // No JS animation: the spec allows only CSS transitions under 200 ms.
+              isAnimationActive={false}
               labelFormatter={(day) => label(Number(day))}
               formatter={(value) => [`${value} room nights`, "Picked up"]}
             />
