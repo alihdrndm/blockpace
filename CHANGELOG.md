@@ -6,6 +6,10 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### @alihdrndm/blockpace-core 0.1.1
+
+- No code changes. First release through the tag-triggered workflow, which stages the version on npm for 2FA approval and validates the trusted publisher.
+
 ### Added
 
 - `apps/calculator`: a browser-only attrition calculator published to GitHub Pages. It bundles `packages/core`, compares the cumulative and per-night bases side by side, and sends nothing to any server.
