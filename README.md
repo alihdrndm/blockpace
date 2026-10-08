@@ -1,6 +1,7 @@
 # blockpace: hotel room block attrition calculator and pickup tracker
 
 [![CI](https://github.com/alihdrndm/blockpace/actions/workflows/ci.yml/badge.svg)](https://github.com/alihdrndm/blockpace/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/%40alihdrndm%2Fblockpace-core?label=npm%20%40alihdrndm%2Fblockpace-core)](https://www.npmjs.com/package/@alihdrndm/blockpace-core)
 
 **blockpace turns a hotel room block contract and a series of pickup reports into one number a planner can act on: how much attrition damage the group owes today, and how much it is on course to owe at the cutoff date.**
 
