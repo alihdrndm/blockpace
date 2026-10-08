@@ -6,6 +6,8 @@
 
 It is an open source attrition calculator, pickup tracker and alerting service for event planners, travel agencies and group housing teams. It is built with TypeScript, NestJS, Next.js and PostgreSQL, and released under the MIT license.
 
+**Try the attrition calculator in your browser: [alihdrndm.github.io/blockpace](https://alihdrndm.github.io/blockpace/).** No sign-up and no install. It compares the cumulative and per-night bases side by side, and nothing you type leaves your browser.
+
 ## The problem
 
 Take a three night group booking: 80, 70 and 50 rooms at $200 a night, with 20% allowed attrition. Your guests book 70, 50 and 30 rooms. Read the attrition clause as **cumulative**, measured on the total, and you owe **$2,000**. Read it **per night**, where each night must reach its own minimum, and you owe **$3,200** for exactly the same group at exactly the same hotel. That gap is decided by one line in the hotel contract, and spreadsheets get it wrong all the time, along with the damages percentage, tax and resell credit for rooms the hotel sold again. Worse, most planners only find out what they owe after the cutoff date, when the hotel has released the unbooked rooms and nothing can be done. blockpace does the attrition math exactly, tracks pickup report by pickup report, projects pickup to the cutoff and raises an alert while there is still time to fill rooms or renegotiate.

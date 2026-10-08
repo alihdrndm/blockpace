@@ -186,3 +186,9 @@ Format: date, what HANDOFF.md said, what was done, why.
 - **Definition of done item 4** (no leftover marker comments): the literal command from HANDOFF.md also matches an integrity hash inside `pnpm-lock.yaml` and files in generated or local folders (`.next`, `.sst`, `.claude`, `dist`, `coverage`). The same search is therefore run with `git grep` over tracked files, excluding `pnpm-lock.yaml`, and it returns nothing.
 - **Worker health check** is `node -e "process.exit(0)"`: the worker has no port, so the check only proves the Node runtime starts; Docker restarts it if the process exits.
 - 2026-10-07 follow-up: rebase merges are allowed on `main` alongside squash (repo setting and ruleset), so a pull request made of many small commits can land with every commit kept, still linear and still gated by CI and CodeQL.
+
+## 2026-10-08 — Browser-only calculator on GitHub Pages (owner request, beyond HANDOFF.md)
+- **HANDOFF.md:** no public site; "Publishing to npm, deploying" is out of scope for the build.
+- **Done (owner asked for a zero-install demo):** `apps/calculator` is a static Vite page that bundles `packages/core` and runs `evaluate` for both bases in the browser. `.github/workflows/pages.yml` builds it and publishes it to GitHub Pages on pushes to `main` that touch the calculator or `packages/core`.
+- **Why it is safe to publish:** no server, no database, no API key, no third-party requests (system fonts, inline icon). Nothing the visitor types is sent anywhere. GitHub Pages is free.
+- **Calculator-specific choices:** with no timeline, the cutoff and "today" are both the first night, so the page shows damages and shortfall but not a forecast or risk level. Money uses each currency's own minor unit (USD 2, JPY 0, KWD 3). `vite` is a dev dependency of `apps/calculator` (OP7); it was already in the workspace through Vitest.

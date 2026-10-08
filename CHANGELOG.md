@@ -6,6 +6,10 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- `apps/calculator`: a browser-only attrition calculator published to GitHub Pages. It bundles `packages/core`, compares the cumulative and per-night bases side by side, and sends nothing to any server.
+
 ## [0.1.0] - 2026-10-07
 
 First release.
