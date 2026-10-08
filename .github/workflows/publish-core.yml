@@ -1,8 +1,10 @@
 name: Publish core to npm
 
-# Publishes packages/core as @alihdrndm/blockpace-core when a tag like core-v0.2.0 is pushed.
+# Stages packages/core as @alihdrndm/blockpace-core when a tag like core-v0.2.0 is pushed.
 # Uses npm trusted publishing: npm verifies this workflow through GitHub's OIDC token, so no
-# npm token is stored as a secret, and every version gets a provenance statement.
+# npm token is stored as a secret. The trusted publisher on npmjs.com allows only
+# `npm stage publish`, so nothing goes live until a maintainer approves the staged version
+# with 2FA (on npmjs.com, or `npm stage approve` from a terminal).
 on:
   push:
     tags: ["core-v*"]
@@ -26,8 +28,9 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .nvmrc
-          cache: pnpm
           registry-url: https://registry.npmjs.org
+          # No dependency cache in a release build: a poisoned cache must never reach npm.
+          package-manager-cache: false
       - run: pnpm install --frozen-lockfile
       - name: Check the tag matches the package version
         working-directory: packages/core
@@ -41,6 +44,6 @@ jobs:
           fi
       - run: pnpm --filter @alihdrndm/blockpace-core typecheck
       - run: pnpm --filter @alihdrndm/blockpace-core test
-      - name: Publish
+      - name: Stage the release (approve it on npmjs.com to publish)
         working-directory: packages/core
-        run: npm publish --provenance --access public
+        run: npm stage publish --access public
