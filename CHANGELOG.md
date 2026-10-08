@@ -6,6 +6,10 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### @alihdrndm/blockpace-core 0.1.2
+
+- No code changes. The package README now shows the npm version badge on npmjs.com.
+
 ### @alihdrndm/blockpace-core 0.1.1
 
 - No code changes. First release through the tag-triggered workflow, which stages the version on npm for 2FA approval and validates the trusted publisher.
