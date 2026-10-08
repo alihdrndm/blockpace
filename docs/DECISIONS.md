@@ -190,5 +190,11 @@ Format: date, what HANDOFF.md said, what was done, why.
 ## 2026-10-08 — Browser-only calculator on GitHub Pages (owner request, beyond HANDOFF.md)
 - **HANDOFF.md:** no public site; "Publishing to npm, deploying" is out of scope for the build.
 - **Done (owner asked for a zero-install demo):** `apps/calculator` is a static Vite page that bundles `packages/core` and runs `evaluate` for both bases in the browser. `.github/workflows/pages.yml` builds it and publishes it to GitHub Pages on pushes to `main` that touch the calculator or `packages/core`.
-- **Why it is safe to publish:** no server, no database, no API key, no third-party requests (system fonts, inline icon). Nothing the visitor types is sent anywhere. GitHub Pages is free.
+- **Why it is safe to publish:** no server, no database, no API key, no third-party requests (the font is bundled with the page, the icon is inline). Nothing the visitor types is sent anywhere. GitHub Pages is free.
 - **Calculator-specific choices:** with no timeline, the cutoff and "today" are both the first night, so the page shows damages and shortfall but not a forecast or risk level. Money uses each currency's own minor unit (USD 2, JPY 0, KWD 3). `vite` is a dev dependency of `apps/calculator` (OP7); it was already in the workspace through Vitest.
+
+## 2026-10-08 — `packages/core` published to npm (owner request, beyond HANDOFF.md)
+- **HANDOFF.md:** "Publishing to npm" is out of scope, and every workspace package is private.
+- **Done (owner asked for it):** `@alihdrndm/blockpace-core` is public on npm. Only `dist` is shipped (no source, tests or coverage); `prepack` rebuilds it from a clean folder. `packages/db` stays private: it only makes sense inside this app.
+- **Node support widened to 20 and later** (was `>=24 <25`, the workspace's own pin). The packed tarball was installed into an empty folder and the README example was run on Node 20, 22 and 24 with identical results, and type-checked as a TypeScript consumer.
+- **Releases:** the first version was published from a developer machine. Later versions are published by `.github/workflows/publish-core.yml` when a `core-vX.Y.Z` tag is pushed, through npm trusted publishing (GitHub OIDC, no stored npm token) with provenance.
