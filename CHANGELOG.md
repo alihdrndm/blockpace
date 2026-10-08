@@ -9,6 +9,11 @@ All notable changes to this project are documented here. The format follows
 ### Added
 
 - `apps/calculator`: a browser-only attrition calculator published to GitHub Pages. It bundles `packages/core`, compares the cumulative and per-night bases side by side, and sends nothing to any server.
+- Calculator redesign: the block is drawn as a hotel at night (one tower per night, one lit window per booked room, coral windows for the nightly shortfall), the two bills are shown as hotel folios, and results update as you type. The font (Bricolage Grotesque) is bundled, so the page still makes no third-party requests.
+
+### Fixed
+
+- Calculator: changing the number of nights and then clicking into a night no longer rebuilds the table and drops what you type.
 
 ## [0.1.0] - 2026-10-07
 
