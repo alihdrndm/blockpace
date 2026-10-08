@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hotel room block attrition calculator | blockpace</title>
+  <meta name="description" content="Free hotel room block attrition calculator for event planners. Compare cumulative and per-night attrition damages, with resell credit and tax. Runs in your browser; nothing is sent anywhere.">
+  <meta property="og:title" content="Hotel room block attrition calculator">
+  <meta property="og:description" content="Same pickup, $975.60 or $1,528.80 in damages, depending on one line in the contract. Check yours in your browser.">
+  <meta property="og:image" content="https://raw.githubusercontent.com/alihdrndm/blockpace/main/docs/media/social-preview.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231c1830'/%3E%3Crect x='7' y='12' width='7' height='7' rx='1.5' fill='%23f4b942'/%3E%3Crect x='18' y='12' width='7' height='7' rx='1.5' fill='%23ff6b6b'/%3E%3Crect x='7' y='22' width='7' height='5' rx='1.5' fill='%23f4b942'/%3E%3Crect x='18' y='22' width='7' height='5' rx='1.5' fill='%23f4b942'/%3E%3C/svg%3E">
+</head>
+<body>
+  <header class="hero">
+    <div class="wrap">
+      <p class="brand"><a href="https://github.com/alihdrndm/blockpace">blockpace</a></p>
+      <h1>Hotel room block attrition calculator</h1>
+      <p class="lede">Find out what an attrition clause will charge your group, measured on the total <em>and</em> night by night, before the hotel sends the bill.</p>
+      <p class="privacy">Runs entirely in your browser. Nothing you type is sent anywhere.</p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="panel" aria-labelledby="terms-heading">
+      <div class="panel-head">
+        <h2 id="terms-heading">Contract terms</h2>
+        <button type="button" class="ghost" id="load-example">Load an example</button>
+      </div>
+      <div class="terms">
+        <label>Currency <input id="currency" value="USD" maxlength="3" autocomplete="off" spellcheck="false"></label>
+        <label>Allowed attrition (%) <input id="attrition" type="number" min="0" max="100" step="0.01" value="20"></label>
+        <label>Damages (% of rate) <input id="damages" type="number" min="0" max="100" step="0.01" value="100"></label>
+        <label>Tax on damages (%) <input id="tax" type="number" min="0" max="50" step="0.01" value="0"></label>
+        <label>Round the minimum
+          <select id="rounding">
+            <option value="ceil">Up (cautious)</option>
+            <option value="round">To the nearest room</option>
+            <option value="floor">Down</option>
+          </select>
+        </label>
+        <label class="check"><input id="resell" type="checkbox"> Resell credit (rooms the hotel resold reduce the shortfall)</label>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="nights-heading">
+      <div class="panel-head">
+        <h2 id="nights-heading">Nights</h2>
+        <div class="night-controls">
+          <label>First night <input id="first-night" type="date"></label>
+          <label>Number of nights <input id="night-count" type="number" min="1" max="60" value="3"></label>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table class="grid" id="nights">
+          <thead>
+            <tr>
+              <th scope="col">Night</th>
+              <th scope="col">Contracted rooms</th>
+              <th scope="col">Rate per night</th>
+              <th scope="col">Picked up</th>
+              <th scope="col" class="resold-col">Resold</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <button type="button" class="primary" id="calculate">Calculate damages</button>
+    </section>
+
+    <section aria-live="polite" id="result" class="result" hidden></section>
+
+    <section class="explain" aria-labelledby="explain-heading">
+      <h2 id="explain-heading">How attrition damages work</h2>
+      <p>A <strong>room block</strong> is a set of rooms a hotel holds for your group, night by night. The <strong>attrition clause</strong> lets your guests leave some of them unused, for example 20%. Below that <strong>minimum</strong>, every missing room night is a <strong>shortfall</strong>, charged at the room rate times the damages percentage.</p>
+      <p>The clause measures the minimum one of two ways. On a <strong>cumulative basis</strong>, only the total has to reach it, so a busy night makes up for a quiet one. On a <strong>per-night basis</strong>, every night has its own minimum, and a full night never cancels out an empty one. That is why the same bookings can cost very different amounts.</p>
+      <p class="fine">This is an estimate, and the signed contract always governs. On the cumulative basis the shortfall is charged at the average rate weighted by contracted rooms. All assumptions are listed in <a href="https://github.com/alihdrndm/blockpace/blob/main/docs/ASSUMPTIONS.md">ASSUMPTIONS.md</a>.</p>
+    </section>
+  </main>
+
+  <footer class="wrap foot">
+    <p>Free and open source (MIT). The full app tracks pickup reports, forecasts pickup to the cutoff date and sends alerts: <a href="https://github.com/alihdrndm/blockpace">github.com/alihdrndm/blockpace</a></p>
+  </footer>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
