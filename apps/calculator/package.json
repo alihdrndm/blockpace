@@ -14,7 +14,8 @@
     "test": "vitest run --coverage"
   },
   "dependencies": {
-    "@alihdrndm/blockpace-core": "workspace:*"
+    "@alihdrndm/blockpace-core": "workspace:*",
+    "@fontsource-variable/bricolage-grotesque": "5.3.0"
   },
   "author": "Ali Haider Nadeem",
   "license": "MIT",

@@ -1,338 +1,810 @@
-/* Same palette as the repository's social preview: dusk plum, window amber, shortfall coral.
-   Light page for long reading; the dark band at the top carries the brand. */
+/* blockpace calculator: the room block as a hotel at night, and the two bills as folios. */
+
 :root {
+  --night: #15122a;
   --dusk: #1c1830;
-  --dusk-2: #2a2447;
+  --dusk-raised: #221d3c;
+  --tower: #2a2346;
+  --window-dark: #352d55;
+  --line: #3a3358;
   --amber: #f4b942;
-  --amber-ink: #8a5a00;
-  --coral: #e5484d;
-  --coral-soft: #fff0f0;
-  --mint: #0e9f7e;
+  --coral: #ff6b6b;
+  --mint: #6ee7c8;
+  --text: #f6f2ff;
+  --muted: #b7aed6;
+  --paper: #f6f2ff;
+  --paper-rule: #d9d2ee;
   --ink: #1d1a2e;
-  --ink-2: #4a4560;
-  --line: #e4e0f0;
-  --paper: #ffffff;
-  --panel: #f8f6fc;
-  --focus: #6d5bd0;
+  --ink-soft: #5b5378;
+  --stamp: #d63c47;
+
+  --sky-h: 300px;
+  --font:
+    "Bricolage Grotesque Variable", system-ui, -apple-system, "Segoe UI",
+    sans-serif;
+
+  color-scheme: dark;
 }
 
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
   margin: 0;
-  background: var(--paper);
-  color: var(--ink);
-  font-family:
-    system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
-    sans-serif;
-  font-size: 16px;
+  font-family: var(--font);
+  font-size: 1rem;
   line-height: 1.55;
-}
-
-.wrap {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 0 20px;
+  color: var(--text);
+  background:
+    radial-gradient(
+      120% 60% at 70% 0%,
+      rgba(110, 90, 200, 0.18),
+      transparent 60%
+    ),
+    var(--night);
+  min-height: 100vh;
 }
 
 a {
-  color: var(--focus);
-}
-:focus-visible {
-  outline: 3px solid var(--focus);
-  outline-offset: 2px;
-  border-radius: 4px;
-}
-
-.hero {
-  background:
-    radial-gradient(
-      700px 300px at 85% 120%,
-      rgba(244, 185, 66, 0.22),
-      transparent 70%
-    ),
-    var(--dusk);
-  color: #f6f2ff;
-  padding: 36px 0 40px;
-}
-.brand {
-  margin: 0 0 14px;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  font-size: 22px;
-}
-.brand a {
   color: var(--amber);
-  text-decoration: none;
-}
-.hero h1 {
-  margin: 0;
-  font-size: clamp(30px, 5vw, 46px);
-  line-height: 1.08;
-  letter-spacing: -0.03em;
-  max-width: 720px;
-}
-.lede {
-  margin: 16px 0 0;
-  font-size: 19px;
-  max-width: 640px;
-  color: #e4ddff;
-}
-.privacy {
-  margin: 14px 0 0;
-  font-size: 14px;
-  color: #bfb6e0;
+  text-underline-offset: 3px;
 }
 
-.panel {
-  margin: 24px 0;
-  padding: 22px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: var(--panel);
-}
-.panel-head {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  align-items: end;
-  justify-content: space-between;
-  margin-bottom: 16px;
-}
-.panel h2 {
-  margin: 0;
-  font-size: 20px;
-  letter-spacing: -0.01em;
+:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
 }
 
-.terms {
-  display: grid;
-  gap: 14px;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-}
-label {
-  display: grid;
-  gap: 6px;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--ink-2);
-}
-label.check {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  grid-column: 1 / -1;
-  font-weight: 500;
-}
-.night-controls {
-  display: flex;
-  gap: 14px;
-  flex-wrap: wrap;
-}
-
-input,
-select {
-  font: inherit;
-  font-size: 15px;
-  padding: 9px 11px;
-  border: 1px solid #cfc8e3;
-  border-radius: 9px;
-  background: #fff;
-  color: var(--ink);
-  min-width: 0;
-}
-input[type="checkbox"] {
-  width: 20px;
-  height: 20px;
-  accent-color: var(--focus);
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .table-scroll {
   overflow-x: auto;
 }
-table.grid {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 15px;
+
+/* ----- Top bar and intro ----------------------------------------------------------------- */
+
+.top,
+.intro,
+.layout,
+.explain,
+.foot {
+  max-width: 1240px;
+  margin-inline: auto;
+  padding-inline: 16px;
 }
-.grid th,
-.grid td {
-  padding: 8px 10px;
-  border-bottom: 1px solid var(--line);
-  text-align: left;
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-block: 20px;
 }
-.grid thead th {
-  font-size: 13px;
-  color: var(--ink-2);
+
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 1.15rem;
+  letter-spacing: -0.01em;
+}
+
+.wordmark svg {
+  width: 28px;
+  height: 28px;
+}
+
+.top-link {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.intro {
+  display: grid;
+  gap: 20px;
+  padding-block: 28px 36px;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(2.6rem, 7vw, 5.6rem);
+  line-height: 0.95;
+  font-weight: 800;
+  font-variation-settings: "opsz" 96;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.lede {
+  margin: 0;
+  max-width: 34em;
+  font-size: 1.15rem;
+  color: var(--text);
+}
+
+.privacy {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+/* ----- Layout ---------------------------------------------------------------------------- */
+
+.layout {
+  display: grid;
+  gap: 24px;
+  padding-bottom: 56px;
+}
+
+.stage {
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+}
+
+/* ----- The hotel at night ------------------------------------------------------------------ */
+
+.night {
+  /* Long stays scroll inside the scene instead of widening the page. */
+  min-width: 0;
+  margin: 0;
+  padding: 28px 20px 18px;
+  border-radius: 20px;
+  background:
+    radial-gradient(
+      90% 70% at 50% 110%,
+      rgba(244, 185, 66, 0.1),
+      transparent 70%
+    ),
+    linear-gradient(180deg, #19152f 0%, #201a3b 100%);
+  border: 1px solid #2c2650;
+}
+
+.skyline {
+  display: flex;
+  align-items: flex-end;
+  justify-content: safe center;
+  gap: clamp(8px, 2vw, 18px);
+  overflow-x: auto;
+  padding: 4px 6px 2px;
+  border-bottom: 2px solid #3d3566;
+  transition: opacity 0.2s;
+}
+
+.skyline.stale {
+  opacity: 0.35;
+}
+
+.tower-col {
+  flex: 1 1 0;
+  min-width: 40px;
+  max-width: 136px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.tower {
+  --row: calc(var(--sky-h) / var(--rows, 20));
+  position: relative;
+  height: calc(var(--tower-rows) * var(--row) + 12px);
+  padding: 8px 7px 4px;
+  border-radius: 6px 6px 0 0;
+  background: var(--tower);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.windows {
+  display: flex;
+  flex-wrap: wrap-reverse;
+  align-content: flex-start;
+  gap: 0 4px;
+  height: 100%;
+}
+
+.win {
+  width: calc((100% - 8px) / 3);
+  height: calc(var(--row) - 4px);
+  margin-top: 4px;
+  border-radius: 2px;
+  background: var(--window-dark);
+  transition:
+    background-color 0.18s,
+    box-shadow 0.18s;
+}
+
+.win-lit {
+  background: var(--amber);
+  box-shadow: 0 0 10px rgba(244, 185, 66, 0.45);
+}
+
+.win-short {
+  background: var(--coral);
+  box-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+}
+
+.win-resold {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--amber);
+}
+
+.min-line {
+  position: absolute;
+  left: -6px;
+  right: -6px;
+  border-top: 2px dashed var(--mint);
+  pointer-events: none;
+}
+
+/* The one orchestrated moment: on first view the booked windows light up, night by night. */
+.lighting .win-lit,
+.lighting .win-short,
+.lighting .win-resold {
+  animation: switch-on 0.5s both;
+  animation-delay: var(--d);
+}
+
+@keyframes switch-on {
+  from {
+    background: var(--window-dark);
+    box-shadow: none;
+  }
+}
+
+.tower-label {
+  display: flex;
+  flex-direction: column;
+  margin: 10px 0 0;
+  font-size: 0.85rem;
+  line-height: 1.25;
+  color: var(--muted);
+  text-align: center;
+}
+
+.tower-label span:first-child {
+  color: var(--text);
   font-weight: 600;
 }
+
+.tower-short {
+  margin: 4px 0 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--coral);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.tower-short.ok {
+  color: var(--mint);
+  font-weight: 600;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin-top: 18px;
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.legend [hidden] {
+  display: none;
+}
+
+.key {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.key-lit {
+  background: var(--amber);
+}
+
+.key-short {
+  background: var(--coral);
+}
+
+.key-resold {
+  box-shadow: inset 0 0 0 1.5px var(--amber);
+}
+
+.key-empty {
+  background: var(--window-dark);
+}
+
+.key-min {
+  height: 0;
+  width: 16px;
+  border-top: 2px dashed var(--mint);
+  border-radius: 0;
+}
+
+.scale-note {
+  font-style: italic;
+}
+
+/* ----- The bills, as hotel folios ---------------------------------------------------------- */
+
+#result {
+  display: grid;
+  gap: 18px;
+}
+
+.folios {
+  display: grid;
+  gap: 24px 16px;
+}
+
+.folio {
+  position: relative;
+  padding: 22px 22px 26px;
+  border-radius: 4px 4px 0 0;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+/* A perforated bottom edge, like a folio torn off the printer. */
+.folio::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 7px;
+  background:
+    radial-gradient(circle at 8px 100%, var(--night) 5.5px, transparent 6px) 0
+    100% / 16px 7px repeat-x;
+}
+
+.folio-head {
+  padding-bottom: 12px;
+  margin-bottom: 6px;
+  border-bottom: 2px solid var(--ink);
+}
+
+.folio h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  line-height: 1.2;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+}
+
+.folio-basis {
+  margin: 2px 0 0;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+
+.stamp {
+  /* Stamped across the top edge of the folio, clear of the title. */
+  position: absolute;
+  top: -14px;
+  right: 16px;
+  margin: 0;
+  padding: 3px 10px;
+  border: 2px solid var(--stamp);
+  border-radius: 6px;
+  background: var(--paper);
+  color: var(--stamp);
+  font-weight: 800;
+  font-size: 0.85rem;
+  transform: rotate(-4deg);
+  box-shadow: 0 4px 12px rgba(10, 6, 30, 0.35);
+}
+
+.lines {
+  margin: 0;
+}
+
+.line {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 0;
+  border-bottom: 1px dashed var(--paper-rule);
+  font-size: 0.95rem;
+}
+
+.line dt {
+  color: var(--ink-soft);
+}
+
+.line dd {
+  margin: 0;
+  font-weight: 600;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.items {
+  margin-top: 10px;
+}
+
+.items .line dt,
+.items .line dd {
+  color: var(--stamp);
+}
+
+.due {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 14px 0 0;
+  padding-top: 12px;
+  border-top: 2px solid var(--ink);
+}
+
+.due span {
+  font-weight: 600;
+}
+
+.due-amount {
+  font-size: clamp(1.8rem, 4vw, 2.3rem);
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.folio-higher .due-amount {
+  color: var(--stamp);
+}
+
+.summary {
+  margin: 0;
+  font-size: 1.15rem;
+  line-height: 1.45;
+  max-width: 40em;
+}
+
+.problems {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid var(--coral);
+  background: rgba(255, 107, 107, 0.08);
+}
+
+.problems h3 {
+  margin: 0 0 6px;
+  font-size: 1.05rem;
+}
+
+.problems ul {
+  margin: 0;
+  padding-left: 1.2em;
+}
+
+.breakdown summary {
+  cursor: pointer;
+  color: var(--muted);
+  width: fit-content;
+}
+
+.breakdown .table-scroll {
+  margin-top: 10px;
+}
+
+/* ----- The inputs ---------------------------------------------------------------------------- */
+
+.desk {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+  min-width: 0;
+}
+
+.group {
+  margin: 0;
+  padding: 20px;
+  border: 1px solid #2e2948;
+  border-radius: 14px;
+  background: var(--dusk);
+  min-width: 0;
+}
+
+.group legend {
+  float: left;
+  width: 100%;
+  margin-bottom: 14px;
+  padding: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.group legend + * {
+  clear: both;
+}
+
+.terms {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.wide {
+  grid-column: 1 / -1;
+}
+
+label {
+  display: grid;
+  gap: 6px;
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+
+input,
+select {
+  width: 100%;
+  min-height: 44px;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--night);
+  color: var(--text);
+  font: inherit;
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+input:hover,
+select:hover {
+  border-color: #50477a;
+}
+
+input[type="checkbox"] {
+  width: 20px;
+  min-height: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: var(--amber);
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+.night-controls {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.grid {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.grid th,
+.grid td {
+  padding: 5px 4px;
+  text-align: left;
+  font-variant-numeric: tabular-nums;
+}
+
+.grid thead th {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--muted);
+  padding-bottom: 6px;
+}
+
 .grid tbody th {
   font-weight: 600;
   white-space: nowrap;
+  padding-right: 10px;
 }
+
 .grid input {
-  width: 100%;
-  min-width: 76px;
-  max-width: 130px;
+  min-width: 64px;
+  /* The spinner arrows take a third of a phone-width cell; nobody steps room counts by one. */
+  appearance: textfield;
+  -moz-appearance: textfield;
 }
-/* On phones the nights table scrolls sideways instead of squeezing the inputs. */
-#nights {
-  min-width: 460px;
+
+.grid input::-webkit-inner-spin-button,
+.grid input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
+
+.grid .short {
+  color: var(--coral);
+  font-weight: 700;
+}
+
 .resold-col {
   display: none;
 }
+
 .show-resold .resold-col {
   display: table-cell;
 }
 
-button {
-  font: inherit;
-  cursor: pointer;
-  border-radius: 10px;
-  transition: background-color 120ms ease;
-}
-.primary {
-  margin-top: 18px;
-  padding: 12px 22px;
-  border: 0;
-  background: var(--dusk);
-  color: #fff;
-  font-weight: 700;
-  font-size: 16px;
-}
-.primary:hover {
-  background: var(--dusk-2);
-}
-.ghost {
-  padding: 8px 14px;
-  border: 1px solid #cfc8e3;
-  background: #fff;
-  color: var(--ink);
-  font-weight: 600;
-}
-.ghost:hover {
-  background: #f1edfb;
-}
-
-.result {
-  margin: 28px 0;
-  scroll-margin-top: 16px;
-}
-.result h2 {
-  font-size: 24px;
-  letter-spacing: -0.02em;
-  margin: 0 0 14px;
-}
-.bases {
-  display: grid;
-  gap: 16px;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-}
-.basis {
+.reset {
+  margin-top: 14px;
+  min-height: 44px;
+  padding: 0 16px;
   border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 20px;
-  background: #fff;
-}
-.basis-worse {
-  border-color: #f3b9bb;
-  background: var(--coral-soft);
-}
-.basis h3 {
-  margin: 0;
-  font-size: 18px;
-}
-.basis-explain {
-  margin: 4px 0 10px;
-  color: var(--ink-2);
-  font-size: 14px;
-}
-.amount {
-  margin: 0 0 12px;
-  font-size: 40px;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  line-height: 1.1;
-}
-.basis-worse .amount {
-  color: #b42318;
-}
-.basis dl {
-  display: grid;
-  grid-template-columns: auto auto;
-  gap: 4px 16px;
-  margin: 0;
-  font-size: 14px;
-}
-.basis dt {
-  color: var(--ink-2);
-}
-.basis dd {
-  margin: 0;
-  text-align: right;
-  font-weight: 600;
-}
-.summary {
-  font-size: 17px;
-  margin: 16px 0 22px;
-  padding: 14px 16px;
-  border-left: 4px solid var(--amber);
-  background: #fffaf0;
-  border-radius: 0 10px 10px 0;
-  color: #4d3a0a;
-}
-.result h3 {
-  font-size: 17px;
-  margin: 0 0 8px;
-}
-.breakdown td.short {
-  color: #b42318;
-  font-weight: 700;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.95rem;
+  cursor: pointer;
 }
 
-.problems {
-  border: 1px solid #f3b9bb;
-  background: var(--coral-soft);
-  border-radius: 14px;
-  padding: 18px 20px;
+.reset:hover {
+  border-color: var(--amber);
+  color: var(--amber);
 }
-.problems h2 {
-  font-size: 18px;
-  margin: 0 0 6px;
-  color: #8c1d18;
-}
-.problems ul {
-  margin: 0;
-  padding-left: 20px;
-  color: #8c1d18;
-}
+
+/* ----- Explainer and footer ------------------------------------------------------------------ */
 
 .explain {
-  margin: 40px 0 24px;
-  max-width: 720px;
-}
-.explain h2 {
-  font-size: 22px;
-  letter-spacing: -0.01em;
-}
-.fine {
-  font-size: 14px;
-  color: var(--ink-2);
-}
-.foot {
-  border-top: 1px solid var(--line);
-  padding-top: 18px;
-  padding-bottom: 40px;
-  color: var(--ink-2);
-  font-size: 14px;
+  padding-block: 48px;
+  border-top: 1px solid #2a2446;
 }
 
-/* The only motion on the page is the button hover fade and the scroll to the result (main.ts). */
+.explain h2 {
+  margin: 0 0 18px;
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.explain-cols {
+  display: grid;
+  gap: 4px 40px;
+}
+
+.explain p {
+  margin: 0 0 14px;
+  max-width: 38em;
+  color: #ddd6f3;
+}
+
+.explain strong {
+  color: var(--text);
+}
+
+.explain .fine {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 24px;
+  padding-block: 24px 40px;
+  border-top: 1px solid #2a2446;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.foot p {
+  margin: 0;
+  max-width: 42em;
+}
+
+/* ----- Wider screens ------------------------------------------------------------------------- */
+
+@media (min-width: 640px) {
+  .folios {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .explain-cols {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (min-width: 880px) {
+  .intro {
+    grid-template-columns: 1.25fr 1fr;
+    align-items: end;
+    gap: 48px;
+    padding-block: 48px 56px;
+  }
+}
+
+@media (min-width: 1040px) {
+  .layout {
+    grid-template-columns: minmax(380px, 430px) minmax(0, 1fr);
+    grid-template-areas: "desk stage";
+    align-items: start;
+    gap: 28px;
+  }
+
+  .desk {
+    grid-area: desk;
+  }
+
+  .stage {
+    grid-area: stage;
+  }
+}
+
+@media (min-width: 1040px) and (min-height: 820px) {
+  .stage {
+    position: sticky;
+    top: 16px;
+  }
+}
+
+@media (max-width: 520px) {
+  :root {
+    --sky-h: 220px;
+  }
+
+  .night {
+    padding: 22px 12px 14px;
+  }
+
+  .terms {
+    grid-template-columns: 1fr;
+  }
+
+  .group {
+    padding: 16px 14px;
+  }
+
+  /* Night, contracted, rate and booked must all fit a phone without scrolling. */
+  .grid th,
+  .grid td {
+    padding: 4px 2px;
+  }
+
+  .grid input {
+    min-width: 0;
+    padding-inline: 8px;
+  }
+
+  .grid tbody th {
+    font-size: 0.85rem;
+    padding-right: 6px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  button {
+  .win,
+  .skyline {
     transition: none;
   }
 }
