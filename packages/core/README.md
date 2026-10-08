@@ -1,5 +1,7 @@
 # @alihdrndm/blockpace-core
 
+[![npm](https://img.shields.io/npm/v/%40alihdrndm%2Fblockpace-core)](https://www.npmjs.com/package/@alihdrndm/blockpace-core)
+
 The attrition math behind [blockpace](https://github.com/alihdrndm/blockpace): what a hotel room block contract will charge a group, on a cumulative basis or night by night.
 
 Try it without installing anything: [alihdrndm.github.io/blockpace](https://alihdrndm.github.io/blockpace/) runs this package in your browser.
