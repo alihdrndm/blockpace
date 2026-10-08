@@ -1,0 +1,338 @@
+/* Same palette as the repository's social preview: dusk plum, window amber, shortfall coral.
+   Light page for long reading; the dark band at the top carries the brand. */
+:root {
+  --dusk: #1c1830;
+  --dusk-2: #2a2447;
+  --amber: #f4b942;
+  --amber-ink: #8a5a00;
+  --coral: #e5484d;
+  --coral-soft: #fff0f0;
+  --mint: #0e9f7e;
+  --ink: #1d1a2e;
+  --ink-2: #4a4560;
+  --line: #e4e0f0;
+  --paper: #ffffff;
+  --panel: #f8f6fc;
+  --focus: #6d5bd0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family:
+    system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    sans-serif;
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+.wrap {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+a {
+  color: var(--focus);
+}
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.hero {
+  background:
+    radial-gradient(
+      700px 300px at 85% 120%,
+      rgba(244, 185, 66, 0.22),
+      transparent 70%
+    ),
+    var(--dusk);
+  color: #f6f2ff;
+  padding: 36px 0 40px;
+}
+.brand {
+  margin: 0 0 14px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  font-size: 22px;
+}
+.brand a {
+  color: var(--amber);
+  text-decoration: none;
+}
+.hero h1 {
+  margin: 0;
+  font-size: clamp(30px, 5vw, 46px);
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  max-width: 720px;
+}
+.lede {
+  margin: 16px 0 0;
+  font-size: 19px;
+  max-width: 640px;
+  color: #e4ddff;
+}
+.privacy {
+  margin: 14px 0 0;
+  font-size: 14px;
+  color: #bfb6e0;
+}
+
+.panel {
+  margin: 24px 0;
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+}
+.panel-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: end;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.panel h2 {
+  margin: 0;
+  font-size: 20px;
+  letter-spacing: -0.01em;
+}
+
+.terms {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+label {
+  display: grid;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+label.check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  grid-column: 1 / -1;
+  font-weight: 500;
+}
+.night-controls {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+input,
+select {
+  font: inherit;
+  font-size: 15px;
+  padding: 9px 11px;
+  border: 1px solid #cfc8e3;
+  border-radius: 9px;
+  background: #fff;
+  color: var(--ink);
+  min-width: 0;
+}
+input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--focus);
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+table.grid {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+.grid th,
+.grid td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+}
+.grid thead th {
+  font-size: 13px;
+  color: var(--ink-2);
+  font-weight: 600;
+}
+.grid tbody th {
+  font-weight: 600;
+  white-space: nowrap;
+}
+.grid input {
+  width: 100%;
+  min-width: 76px;
+  max-width: 130px;
+}
+/* On phones the nights table scrolls sideways instead of squeezing the inputs. */
+#nights {
+  min-width: 460px;
+}
+.resold-col {
+  display: none;
+}
+.show-resold .resold-col {
+  display: table-cell;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: background-color 120ms ease;
+}
+.primary {
+  margin-top: 18px;
+  padding: 12px 22px;
+  border: 0;
+  background: var(--dusk);
+  color: #fff;
+  font-weight: 700;
+  font-size: 16px;
+}
+.primary:hover {
+  background: var(--dusk-2);
+}
+.ghost {
+  padding: 8px 14px;
+  border: 1px solid #cfc8e3;
+  background: #fff;
+  color: var(--ink);
+  font-weight: 600;
+}
+.ghost:hover {
+  background: #f1edfb;
+}
+
+.result {
+  margin: 28px 0;
+  scroll-margin-top: 16px;
+}
+.result h2 {
+  font-size: 24px;
+  letter-spacing: -0.02em;
+  margin: 0 0 14px;
+}
+.bases {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+.basis {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 20px;
+  background: #fff;
+}
+.basis-worse {
+  border-color: #f3b9bb;
+  background: var(--coral-soft);
+}
+.basis h3 {
+  margin: 0;
+  font-size: 18px;
+}
+.basis-explain {
+  margin: 4px 0 10px;
+  color: var(--ink-2);
+  font-size: 14px;
+}
+.amount {
+  margin: 0 0 12px;
+  font-size: 40px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+.basis-worse .amount {
+  color: #b42318;
+}
+.basis dl {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 4px 16px;
+  margin: 0;
+  font-size: 14px;
+}
+.basis dt {
+  color: var(--ink-2);
+}
+.basis dd {
+  margin: 0;
+  text-align: right;
+  font-weight: 600;
+}
+.summary {
+  font-size: 17px;
+  margin: 16px 0 22px;
+  padding: 14px 16px;
+  border-left: 4px solid var(--amber);
+  background: #fffaf0;
+  border-radius: 0 10px 10px 0;
+  color: #4d3a0a;
+}
+.result h3 {
+  font-size: 17px;
+  margin: 0 0 8px;
+}
+.breakdown td.short {
+  color: #b42318;
+  font-weight: 700;
+}
+
+.problems {
+  border: 1px solid #f3b9bb;
+  background: var(--coral-soft);
+  border-radius: 14px;
+  padding: 18px 20px;
+}
+.problems h2 {
+  font-size: 18px;
+  margin: 0 0 6px;
+  color: #8c1d18;
+}
+.problems ul {
+  margin: 0;
+  padding-left: 20px;
+  color: #8c1d18;
+}
+
+.explain {
+  margin: 40px 0 24px;
+  max-width: 720px;
+}
+.explain h2 {
+  font-size: 22px;
+  letter-spacing: -0.01em;
+}
+.fine {
+  font-size: 14px;
+  color: var(--ink-2);
+}
+.foot {
+  border-top: 1px solid var(--line);
+  padding-top: 18px;
+  padding-bottom: 40px;
+  color: var(--ink-2);
+  font-size: 14px;
+}
+
+/* The only motion on the page is the button hover fade and the scroll to the result (main.ts). */
+@media (prefers-reduced-motion: reduce) {
+  button {
+    transition: none;
+  }
+}
