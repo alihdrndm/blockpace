@@ -10,7 +10,7 @@ All notable changes to this project are documented here. The format follows
 
 - `apps/calculator`: a browser-only attrition calculator published to GitHub Pages. It bundles `packages/core`, compares the cumulative and per-night bases side by side, and sends nothing to any server.
 - Calculator redesign: the block is drawn as a hotel at night (one tower per night, one lit window per booked room, coral windows for the nightly shortfall), the two bills are shown as hotel folios, and results update as you type. The font (Bricolage Grotesque) is bundled, so the page still makes no third-party requests.
-- `@alihdrndm/blockpace-core` is published on npm, with a package README, Node.js 20+ support and a tag-triggered publish workflow (npm trusted publishing with provenance).
+- `@alihdrndm/blockpace-core` is published on npm, with a package README, Node.js 20+ support and a tag-triggered release workflow (npm trusted publishing; CI stages each version and the owner approves it with 2FA).
 
 ### Fixed
 
