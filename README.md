@@ -120,6 +120,16 @@ webhook-sink-1  | RISK_LEVEL_CHANGED 01a1170c-7bbc-7056-b62f-3a97dd923ef4 signat
 
 The risk level moved from `on_track` to `at_risk`. The API raised the alert in the same database transaction as the snapshot, the worker delivered it signed with HMAC-SHA256, and the local webhook sink verified the signature.
 
+## Use the calculation in your own code
+
+The attrition math is published on npm as [`@alihdrndm/blockpace-core`](https://www.npmjs.com/package/@alihdrndm/blockpace-core): cumulative and per-night damages, resell credit, tax, the pickup forecast and the risk level, in exact integer money, with Zod schemas for every input. It runs in Node.js 20 or later and in the browser.
+
+```sh
+npm install @alihdrndm/blockpace-core
+```
+
+See the [package README](packages/core/README.md) for a worked example.
+
 ## How it works
 
 ```mermaid
