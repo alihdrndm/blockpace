@@ -24,10 +24,10 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.15",
-    "@playwright/test": "^1.63.0",
+    "@playwright/test": "^1.64.0",
     "@types/node": "^24.19.1",
     "@vitest/coverage-v8": "^5.0.3",
-    "concurrently": "^10.0.5",
+    "concurrently": "^10.0.6",
     "sst": "^3.19.3",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",
