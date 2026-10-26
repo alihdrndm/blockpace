@@ -25,7 +25,7 @@
   "devDependencies": {
     "@biomejs/biome": "^2.5.15",
     "@playwright/test": "^1.64.1",
-    "@types/node": "^24.19.1",
+    "@types/node": "^26.6.5",
     "@vitest/coverage-v8": "^5.0.5",
     "concurrently": "^10.0.6",
     "sst": "^3.19.3",
